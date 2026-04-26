@@ -10,7 +10,6 @@ if(EMSCRIPTEN)
   set(TARGET_PARAM )
 else()
   set(TARGET_NAME Portfolio)
-  set(TARGET_PARAM WIN32)
 endif()
 
 # ENGINE LIBRARY (Minigin)

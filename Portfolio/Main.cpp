@@ -1,3 +1,5 @@
+#define SDL_MAIN_HANDLED 
+
 #include "Minigin.h"
 #include <iostream>
 
@@ -10,6 +12,7 @@ int main(int, char* [])
 {
     std::cout << "Starting Portfolio Engine...\n";
 
+    // Start the engine
     dae::Minigin engine("./Data/");
     engine.Run(load);
 
