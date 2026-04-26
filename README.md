@@ -1,2 +1,24 @@
-# AnaCarvalho-Portfolio
-My interactive portfolio! Build using a custom C++ game engine and WebAssembly :)
+# Ana Carvalho - Interactive Portfolio
+
+Hi!! Welcome to my portfolio. Since I'm studying to be a game developer, making a standard scrolling website felt a bit boring. Instead, I decided to turn my portfolio into a playable game built from scratch in C++. 
+
+It runs on a custom engine I've been developing for my Programming 4 final exam at DAE (Howest), which is based on the [Minigin](https://github.com/avadae/minigin) framework.
+
+**[Play the Portfolio Here in your Browser!](https://anapaoliellodelucenacarvalho.github.io/AnaCarvalho-Portfolio/)**
+
+--
+
+## How to Play
+
+- **Move:** `WASD` or `Arrow Keys`
+- **Interact:** Press `E`. When you're in the projects area and walk up to a flower and press `E`, this will open up different projects. Or When you're in contact area  pull up my CV!
+
+*Note: This experience was created in mind for desktop. I haven't added mobile mode yet, so please view it on a PC!*
+
+--
+
+## Why build a game for a portfolio?
+
+If I'm learning to make games, my portfolio should probably reflect that! I wanted a fun, interactive way to showcase my code rather than just listing it on a static webpage. 
+
+This project acts as a live demonstration of my C++ skills. I also drew all the pixel art (with a lot of inspiration from Pinterest!) to give it a cozy vibe. It's compiled straight to WebAssembly so it can run smoothly in your browser. 

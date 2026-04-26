@@ -23,11 +23,6 @@
 *.dll
 *.so.*
 
-
-# Fortran module files
-*.mod
-*.smod
-
 # Compiled Static libraries
 *.lai
 *.la
@@ -39,31 +34,40 @@
 *.out
 *.app
 
-# Build directories
+# BUILD DIRECTORIES
 build/
 Build/
 build-*/
+out/
+bin/
+bin-int/
 
-# CMake generated files
+# VISUAL STUDIO
+.vs/
+*.user
+*.suo
+*.sln.docstates
+
+# CMAKE
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
 install_manifest.txt
 compile_commands.json
+CMakeSettings.json
 
-# Temporary files
+# TEMPORARY + CACHE
 *.tmp
 *.log
 *.bak
 *.swp
-
-# vcpkg
-vcpkg_installed/
-
-# debug information files
-*.dwo
-
-# test output & cache
-Testing/
 .cache/
+Testing/
+
+# VCPKG
+vcpkg_installed/
+vcpkg_packages/
+
+# MAC
+.DS_Store
