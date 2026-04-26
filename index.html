@@ -2,47 +2,64 @@
 <html lang="en-us">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Ana Carvalho - Interactive Portfolio</title>
+    <title>Debug Mode - Ana Carvalho</title>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #111;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        body {
+            background-color: #222;
+            color: white;
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        canvas.emscripten {
+            border: 2px solid #555;
+            display: block;
+            margin: 20px auto;
+            width: 800px;
+            height: 450px;
         }
 
-        canvas.emscripten {
-            border: 0px none;
-            background-color: black;
-            width: 100vw;
-            height: 100vh;
-            object-fit: contain;
-            outline: none;
+        #output {
+            width: 800px;
+            height: 150px;
+            margin: 10px auto;
+            background: black;
+            color: lime;
+            font-family: monospace;
+            padding: 10px;
+            overflow-y: scroll;
+            border: 1px solid #444;
         }
     </style>
 </head>
 <body>
-    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    <div style="text-align: center;">
+        <h2>Engine Debug View</h2>
+        <div id="status">Downloading...</div>
+    </div>
+
+    <canvas class="emscripten" id="canvas" tabindex="-1"></canvas>
+
+    <div id="output"></div>
 
     <script type='text/javascript'>
-      var Module = {
-        canvas: (function() {
-          var canvas = document.getElementById('canvas');
-          canvas.addEventListener("webglcontextlost", function(e) {
-              alert('WebGL context lost. Please reload the page.');
-              e.preventDefault();
-          }, false);
-          return canvas;
-        })()
-      };
-    </script>
+        var statusElement = document.getElementById('status');
+        var outputElement = document.getElementById('output');
 
+        var Module = {
+            print: (function () {
+                return function (text) {
+                    outputElement.innerHTML += text + "<br>";
+                    outputElement.scrollTop = outputElement.scrollHeight;
+                };
+            })(),
+            canvas: (function () {
+                return document.getElementById('canvas');
+            })(),
+            setStatus: function (text) {
+                statusElement.innerHTML = text;
+            }
+        };
+    </script>
     <script async type="text/javascript" src="Portfolio_web.js"></script>
 </body>
 </html>
