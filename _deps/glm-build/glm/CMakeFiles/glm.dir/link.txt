@@ -1,0 +1,2 @@
+/home/runner/work/_temp/6aaa3398-7dea-489b-828f-d1d23c4304b1/emsdk-main/upstream/emscripten/emar qc libglm.a CMakeFiles/glm.dir/detail/glm.cpp.o
+/home/runner/work/_temp/6aaa3398-7dea-489b-828f-d1d23c4304b1/emsdk-main/upstream/emscripten/emranlib libglm.a

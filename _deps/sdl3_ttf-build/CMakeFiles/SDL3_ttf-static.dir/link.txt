@@ -1,0 +1,2 @@
+/home/runner/work/_temp/6aaa3398-7dea-489b-828f-d1d23c4304b1/emsdk-main/upstream/emscripten/emar qc libSDL3_ttf.a "CMakeFiles/SDL3_ttf-static.dir/src/SDL_hashtable.c.o" "CMakeFiles/SDL3_ttf-static.dir/src/SDL_hashtable_ttf.c.o" "CMakeFiles/SDL3_ttf-static.dir/src/SDL_gpu_textengine.c.o" "CMakeFiles/SDL3_ttf-static.dir/src/SDL_renderer_textengine.c.o" "CMakeFiles/SDL3_ttf-static.dir/src/SDL_surface_textengine.c.o" "CMakeFiles/SDL3_ttf-static.dir/src/SDL_ttf.c.o"
+/home/runner/work/_temp/6aaa3398-7dea-489b-828f-d1d23c4304b1/emsdk-main/upstream/emscripten/emranlib libSDL3_ttf.a
