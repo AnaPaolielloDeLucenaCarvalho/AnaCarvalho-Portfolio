@@ -29,7 +29,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmpmx6cpvd5.js
+// include: /tmp/tmpjgyjgcrc.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -161,7 +161,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
   })();
 
-// end include: /tmp/tmpmx6cpvd5.js
+// end include: /tmp/tmpjgyjgcrc.js
 
 
 var arguments_ = [];
@@ -7801,8 +7801,6 @@ var findStringEnd = (heapOrArray, idx, maxBytesToRead, ignoreNul) => {
 
 
 
-  var requestFullscreen = Browser.requestFullscreen;
-
   var FS_createPath = (...args) => FS.createPath(...args);
 
 
@@ -7864,7 +7862,6 @@ if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
 // Begin runtime exports
   Module['addRunDependency'] = addRunDependency;
   Module['removeRunDependency'] = removeRunDependency;
-  Module['requestFullscreen'] = requestFullscreen;
   Module['FS_preloadFile'] = FS_preloadFile;
   Module['FS_unlink'] = FS_unlink;
   Module['FS_createPath'] = FS_createPath;
