@@ -22,6 +22,9 @@
             background-color: #9c794a;
             width: 100vw;
             height: 100vh;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
             object-fit: contain;
             object-position: center;
             outline: none;
@@ -39,6 +42,8 @@
               alert('WebGL context lost. Please reload the page.');
               e.preventDefault();
           }, false);
+          canvas.width = 1366;
+          canvas.height = 768;
           return canvas;
         })()
       };
