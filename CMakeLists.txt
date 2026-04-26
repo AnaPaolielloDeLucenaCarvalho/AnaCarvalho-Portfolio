@@ -14,6 +14,7 @@ else()
 endif()
 
 # ENGINE LIBRARY (Minigin)
+
 add_library(Minigin STATIC
   Minigin/Font.cpp
   Minigin/FPSComponent.cpp 
@@ -30,25 +31,24 @@ add_library(Minigin STATIC
   Minigin/TextComponent.cpp
   Minigin/Texture2D.cpp
   Minigin/Transform.cpp
-  Minigin/MiniaudioSoundSystem.cpp
-  Minigin/ServiceLocator.cpp
-)
+  Minigin/MiniaudioSoundSystem.cpp 
+  Minigin/ServiceLocator.cpp)
 
 target_compile_features(Minigin PUBLIC cxx_std_20)
 
-# this includes the Minigin folder so the game finds the engine
 target_include_directories(Minigin PUBLIC ${CMAKE_SOURCE_DIR}/Minigin)
+
+# ---------------------------------------------------
 
 # PORTFOLIO EXECUTABLE
 add_executable(${TARGET_NAME} ${TARGET_PARAM}
   Portfolio/Main.cpp
-  # Add any other .cpp files for your Portfolio here!
 )
 
-# Enable c++20 features for the game
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
 
-# LIBRARIES
+# ---------------------------------------------------
+
 include(FetchContent)
 
 # glm
@@ -110,6 +110,7 @@ if(NOT SDL3_ttf_FOUND)
       GIT_PROGRESS TRUE
     )
     set(SDL3TTF_INSTALL OFF)
+    
     if(EMSCRIPTEN)
       list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/emscripten")
       set(SDL3TTF_USE_SYSTEM_FREETYPE ON)
@@ -118,13 +119,14 @@ if(NOT SDL3_ttf_FOUND)
       add_compile_options(-sUSE_FREETYPE=1 -sUSE_HARFBUZZ=1)
       add_link_options(-sUSE_FREETYPE=1 -sUSE_HARFBUZZ=1)
     endif()
+    
     FetchContent_MakeAvailable(SDL3_ttf)
   endif()
 endif()
 
-# ImGui
 add_compile_definitions(IMGUI_DEFINE_MATH_OPERATORS)
 
+# Dear ImGui
 FetchContent_Declare(
   imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui
@@ -140,19 +142,19 @@ add_library(imgui STATIC
   ${imgui_SOURCE_DIR}/imgui_widgets.cpp
   ${imgui_SOURCE_DIR}/imgui_demo.cpp
   ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
-  ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer3.cpp "Minigin/Gamepad.cpp"
-)
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer3.cpp "Minigin/Gamepad.cpp")
 
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${sdl3_SOURCE_DIR}/include)
 target_link_libraries(imgui PUBLIC SDL3::SDL3)
 target_compile_features(imgui PUBLIC cxx_std_20)
 
 if (WIN32)
-  # Add VLD (Visual Leak Detector) for memory leak detection on Windows
   find_package(VLD CONFIG)
 endif()
 
-# DEPENDENCIES
+# ---------------------------------------------------
+
+# LINKING DEPENDENCIES
 target_include_directories(Minigin PUBLIC
   ${imgui_SOURCE_DIR}
 )
@@ -173,7 +175,8 @@ target_link_libraries(${TARGET_NAME} PRIVATE
   ${VLD_LIBRARIES}
 )
 
-# COMPILATION RULES
+# ------------------------------------------------
+
 if(MSVC)
   target_compile_options(${TARGET_NAME} PRIVATE /W4 /WX)
 else()
@@ -216,6 +219,27 @@ elseif(WIN32)
     )
   endforeach()
 
+  add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/Data" "$<TARGET_FILE_DIR:${TARGET_NAME}>/Data"
+  )
+elseif(APPLE)
+  set_target_properties(${TARGET_NAME} PROPERTIES
+    MACOSX_BUNDLE TRUE
+    INSTALL_RPATH "@executable_path/../Frameworks"
+    BUILD_WITH_INSTALL_RPATH TRUE
+  )
+  add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "$<TARGET_BUNDLE_DIR:${TARGET_NAME}>/Contents/Frameworks"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SDL3::SDL3-shared>" "$<TARGET_BUNDLE_DIR:${TARGET_NAME}>/Contents/Frameworks/"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SDL3_ttf::SDL3_ttf-shared>" "$<TARGET_BUNDLE_DIR:${TARGET_NAME}>/Contents/Frameworks/"
+    COMMAND install_name_tool -change "@rpath/libSDL3_ttf.0.dylib" "@executable_path/../Frameworks/libSDL3_ttf.0.2.2.dylib" "$<TARGET_FILE:${TARGET_NAME}>"
+    COMMAND install_name_tool -change "@rpath/libSDL3.0.dylib" "@executable_path/../Frameworks/libSDL3.0.dylib" "$<TARGET_FILE:${TARGET_NAME}>"
+  )
+
+  add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/Data" "$<TARGET_FILE_DIR:${TARGET_NAME}>/Data"
+  )
+else()
   add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/Data" "$<TARGET_FILE_DIR:${TARGET_NAME}>/Data"
   )
