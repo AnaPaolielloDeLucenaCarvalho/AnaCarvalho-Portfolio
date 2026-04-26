@@ -27,15 +27,20 @@ jobs:
       - name: Build Project
         run: cmake --build build --config Release
 
-      - name: Rename output to index.html
+      - name: Prepare Clean Deployment Folder
         run: |
+          mkdir web_ready
           cd build
           if [ -f "Portfolio_web.html" ]; then
             mv Portfolio_web.html index.html
           fi
+          cp index.html ../web_ready/
+          cp *.js ../web_ready/
+          cp *.wasm ../web_ready/
+          cp *.data ../web_ready/ 2>/dev/null || true
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
+          publish_dir: ./web_ready
