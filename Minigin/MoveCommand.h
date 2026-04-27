@@ -11,11 +11,10 @@ namespace dae
     class MoveCommand : public Command
     {
     public:
-        MoveCommand(GameObject* gameObject, const glm::vec2& direction, float speed, float offsetY = 52.0f)
+        MoveCommand(GameObject* gameObject, const glm::vec2& direction, float speed)
             : m_pGameObject(gameObject)
             , m_Direction(direction)
             , m_Speed(speed)
-            , m_OffsetY{ offsetY }
         {
             if (glm::length(m_Direction) > 0)
             {
@@ -63,7 +62,6 @@ namespace dae
         GameObject* m_pGameObject;
         glm::vec2 m_Direction;
         float m_Speed;
-        float m_OffsetY;
     };
 }
 
