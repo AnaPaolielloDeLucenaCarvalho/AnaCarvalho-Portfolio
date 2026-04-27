@@ -31,7 +31,9 @@ add_library(Minigin STATIC
   Minigin/Texture2D.cpp
   Minigin/Transform.cpp
   Minigin/MiniaudioSoundSystem.cpp 
-  Minigin/ServiceLocator.cpp "Minigin/SpriteComponent.cpp")
+  Minigin/ServiceLocator.cpp 
+  Minigin/SpriteComponent.cpp 
+  Minigin/TriggerComponent.cpp)
 
 target_compile_features(Minigin PUBLIC cxx_std_20)
 
