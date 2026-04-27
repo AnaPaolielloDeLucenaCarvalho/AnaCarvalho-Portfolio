@@ -41,7 +41,6 @@ void BindPlayerInputs(dae::GameObject* playerPtr)
 void load()
 {
     std::cout << "Welcome to the Portfolio!\n";
-    std::cout << "Console check version - 1\n";
     auto& sceneManager = dae::SceneManager::GetInstance();
 
 // MAIN MENU
@@ -70,6 +69,13 @@ void load()
     tComp1->SetTarget(player1Ptr, 88.0f, 120.0f);
     mainScene.Add(std::move(triggerToAbout));
 
+	// Trigger to go to CONTACT
+    auto triggerToContact = std::make_unique<dae::GameObject>();
+    triggerToContact->SetLocalPosition(1366.0f - 125.0f, 400.0f);
+    auto tComp2 = triggerToContact->AddComponent<dae::TriggerComponent>(125.0f, 150.0f);
+    tComp2->SetTarget(player1Ptr, 88.0f, 120.0f);
+    mainScene.Add(std::move(triggerToContact));
+
 // ABOUT
 
     auto& aboutScene = sceneManager.CreateScene();
@@ -86,13 +92,34 @@ void load()
     // Trigger to go back to MAIN MENU
     auto triggerToMain = std::make_unique<dae::GameObject>();
     triggerToMain->SetLocalPosition((1366.0f / 2.0f) - (125.0f / 2.0f), 768.0f - 25.0f);
-    auto tComp2 = triggerToMain->AddComponent<dae::TriggerComponent>(150.0f, 25.0f);
-    tComp2->SetTarget(player2Ptr, 88.0f, 120.0f);
+    auto tComp3 = triggerToMain->AddComponent<dae::TriggerComponent>(150.0f, 25.0f);
+    tComp3->SetTarget(player2Ptr, 88.0f, 120.0f);
     aboutScene.Add(std::move(triggerToMain));
+
+// CONTACT
+
+    auto& contactScene = sceneManager.CreateScene();
+
+    auto contactBg = std::make_unique<dae::GameObject>();
+    contactBg->AddComponent<dae::RenderComponent>("ContactBackground.png");
+    contactScene.Add(std::move(contactBg));
+
+    auto player3 = std::make_unique<dae::GameObject>();
+    player3->AddComponent<dae::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
+    auto player3Ptr = player3.get();
+    contactScene.Add(std::move(player3));
+
+    // Trigger to go back to MAIN MENU
+    auto triggerToMain2 = std::make_unique<dae::GameObject>();
+    triggerToMain2->SetLocalPosition(0, 400.0f);
+    auto tComp4 = triggerToMain2->AddComponent<dae::TriggerComponent>(125.0f, 150.0f);
+    tComp4->SetTarget(player3Ptr, 88.0f, 120.0f);
+    contactScene.Add(std::move(triggerToMain2));
 
 
 // LINK THE TRIGGERS
 
+    // MAIN MENU -> ABOUT
     tComp1->SetOnTriggerEnter([player2Ptr]()
         {
             std::cout << "Going to About Scene...\n";
@@ -105,14 +132,41 @@ void load()
                 });
         });
 
-    tComp2->SetOnTriggerEnter([player1Ptr]()
+    // MAIN MENU -> CONTACT
+    tComp2->SetOnTriggerEnter([player3Ptr]()
         {
-            std::cout << "Going to Main Scene...\n";
+            std::cout << "Going to Contact Scene...\n";
+            dae::InputManager::GetInstance().UnbindAll();
+
+            dae::SceneManager::GetInstance().TransitionToScene(2, [player3Ptr]()
+                {
+                    player3Ptr->SetLocalPosition(0 + 150.0f, 400.0f);
+                    BindPlayerInputs(player3Ptr);
+                });
+        });
+
+    // ABOUT -> MAIN MENU
+    tComp3->SetOnTriggerEnter([player1Ptr]()
+        {
+            std::cout << "Returning to Main Scene from About...\n";
             dae::InputManager::GetInstance().UnbindAll();
 
             dae::SceneManager::GetInstance().TransitionToScene(0, [player1Ptr]()
                 {
                     player1Ptr->SetLocalPosition(642.5f, 95.0f);
+                    BindPlayerInputs(player1Ptr);
+                });
+        });
+
+    // CONTACT -> MAIN MENU
+    tComp4->SetOnTriggerEnter([player1Ptr]()
+        {
+            std::cout << "Returning to Main Scene from Contact...\n";
+            dae::InputManager::GetInstance().UnbindAll();
+
+            dae::SceneManager::GetInstance().TransitionToScene(0, [player1Ptr]()
+                {
+                    player1Ptr->SetLocalPosition(1366.0f - 250.0f, (768.0f / 2.0f));
                     BindPlayerInputs(player1Ptr);
                 });
         });
