@@ -41,6 +41,7 @@ void BindPlayerInputs(dae::GameObject* playerPtr)
 void load()
 {
     std::cout << "Welcome to the Portfolio!\n";
+    std::cout << "Console check version - 1\n";
     auto& sceneManager = dae::SceneManager::GetInstance();
 
 // MAIN MENU

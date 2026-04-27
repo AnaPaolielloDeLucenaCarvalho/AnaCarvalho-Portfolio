@@ -21,6 +21,8 @@ void dae::Renderer::Init(SDL_Window* window)
 		throw std::runtime_error(std::string("SDL_CreateRenderer Error: ") + SDL_GetError());
 	}
 
+	SDL_SetRenderLogicalPresentation(m_renderer, 1366, 768, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
