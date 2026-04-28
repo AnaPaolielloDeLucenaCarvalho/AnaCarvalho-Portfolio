@@ -3,18 +3,21 @@
 
 #include "Command.h"
 #include "GameObject.h"
-#include "SpriteComponent.h"
+#include "SpriteComponent.h" 
 #include <glm/glm.hpp>
+#include <vector>
+#include <SDL3/SDL_rect.h>
 
 namespace dae
 {
     class MoveCommand : public Command
     {
     public:
-        MoveCommand(GameObject* gameObject, const glm::vec2& direction, float speed)
+        MoveCommand(GameObject* gameObject, const glm::vec2& direction, float speed, const std::vector<SDL_FRect>& walkableZones = {})
             : m_pGameObject(gameObject)
             , m_Direction(direction)
             , m_Speed(speed)
+            , m_WalkableZones(walkableZones)
         {
             if (glm::length(m_Direction) > 0)
             {
@@ -32,22 +35,46 @@ namespace dae
                 float newX = pos.x + movement.x;
                 float newY = pos.y + movement.y;
 
-                float spriteWidth = 88.0f;
-                float spriteHeight = 120.0f;
+                if (m_WalkableZones.empty())
+                {
+                    // Default behavior: Clamp to screen if no zones are provided
+                    float minX = 0.0f, maxX = 1366.0f - 88.0f;
+                    float minY = 0.0f, maxY = 768.0f - 120.0f;
+                    if (newX < minX) newX = minX;
+                    if (newX > maxX) newX = maxX;
+                    if (newY < minY) newY = minY;
+                    if (newY > maxY) newY = maxY;
 
-                float minX = 0.0f - spriteWidth/2;
-                float maxX = 1366.0f - spriteWidth/2;
+                    m_pGameObject->SetLocalPosition(newX, newY);
+                }
+                else
+                {
+                    float feetOffsetX = 88.0f / 2.0f;
+                    float feetOffsetY = 110.0f;
 
-                float minY = 0.0f - spriteHeight/2;
-                float maxY = 768.0f - spriteHeight/2;
+                    bool canWalkX = false;
+                    bool canWalkY = false;
 
-                if (newX < minX) newX = minX;
-                if (newX > maxX) newX = maxX;
+                    float testX = newX + feetOffsetX;
+                    float testY = pos.y + feetOffsetY;
+                    for (const auto& zone : m_WalkableZones)
+                    {
+                        if (testX >= zone.x && testX <= zone.x + zone.w &&
+                            testY >= zone.y && testY <= zone.y + zone.h) canWalkX = true;
+                    }
 
-                if (newY < minY) newY = minY;
-                if (newY > maxY) newY = maxY;
+                    testX = pos.x + feetOffsetX;
+                    testY = newY + feetOffsetY;
+                    for (const auto& zone : m_WalkableZones)
+                    {
+                        if (testX >= zone.x && testX <= zone.x + zone.w &&
+                            testY >= zone.y && testY <= zone.y + zone.h) canWalkY = true;
+                    }
 
-                m_pGameObject->SetLocalPosition(newX, newY);
+                    float finalX = canWalkX ? newX : pos.x;
+                    float finalY = canWalkY ? newY : pos.y;
+                    m_pGameObject->SetLocalPosition(finalX, finalY);
+                }
 
                 auto spriteComp = m_pGameObject->GetComponent<dae::SpriteComponent>();
                 if (spriteComp)
@@ -62,6 +89,7 @@ namespace dae
         GameObject* m_pGameObject;
         glm::vec2 m_Direction;
         float m_Speed;
+        std::vector<SDL_FRect> m_WalkableZones;
     };
 }
 
