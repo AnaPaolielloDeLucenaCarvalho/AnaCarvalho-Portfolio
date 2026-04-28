@@ -35,12 +35,25 @@ namespace dae
         if (isOverlapping && !m_IsInside)
         {
             m_IsInside = true;
-            m_OnTriggerEnter();
+            if (m_OnTriggerEnter)
+            {
+                m_OnTriggerEnter();
+            }
         }
         else if (!isOverlapping && m_IsInside)
         {
             m_IsInside = false;
+            if (m_OnTriggerExit)
+            {
+                m_OnTriggerExit();
+            }
         }
+    }
+
+    // Add this function anywhere in the .cpp file:
+    void dae::TriggerComponent::SetOnTriggerExit(std::function<void()> callback)
+    {
+        m_OnTriggerExit = callback;
     }
 
     void TriggerComponent::SetTarget(GameObject* target, float targetWidth, float targetHeight)
@@ -57,10 +70,10 @@ namespace dae
 
     void dae::TriggerComponent::Render() const
     {
-        auto renderer = dae::Renderer::GetInstance().GetSDLRenderer();
+        /*auto renderer = dae::Renderer::GetInstance().GetSDLRenderer();
         const auto& pos = GetOwner()->GetTransform().GetPosition();
 
-        /*Uint8 r, g, b, a;
+        Uint8 r, g, b, a;
         SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a);
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);

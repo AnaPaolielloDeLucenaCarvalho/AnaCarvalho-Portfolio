@@ -17,6 +17,9 @@ namespace dae
 
         void SetOnTriggerEnter(std::function<void()> callback);
 
+        void SetOnTriggerExit(std::function<void()> callback);
+        bool IsInside() const { return m_IsInside; }
+
     private:
         float m_Width;
         float m_Height;
@@ -26,6 +29,7 @@ namespace dae
         float m_TargetHeight{ 0 };
 
         std::function<void()> m_OnTriggerEnter;
+        std::function<void()> m_OnTriggerExit;
         bool m_IsInside{ false };
 
         bool m_FirstFrame{ true };
