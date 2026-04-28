@@ -27,4 +27,5 @@ This project acts as a live demonstration of my C++ skills. I also drew all the 
 
 ## Credits
 
-The music used in the portfolio is from Animal Crossing: New Horizons - all credits go to Nintendo
+**Background Music:** *Animal Crossing: New Horizons (Main Theme)* 
+*(All rights and intellectual property belong to Nintendo Co., Ltd.)*

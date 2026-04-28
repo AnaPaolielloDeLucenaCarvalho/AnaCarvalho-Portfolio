@@ -15,6 +15,9 @@
 #include <MoveCommand.h>
 #include <InputManager.h>
 #include "TriggerComponent.h"
+#include <MiniaudioSoundSystem.h>
+#include <LoggingSoundSystem.h>
+#include "ServiceLocator.h"
 
 namespace fs = std::filesystem;
 
@@ -42,6 +45,21 @@ void BindPlayerInputs(dae::GameObject* playerPtr, const std::vector<SDL_FRect>& 
 void load()
 {
     std::cout << "Welcome to the Portfolio!\n";
+
+    std::string dataPath = "";
+#ifdef __EMSCRIPTEN__
+    dataPath = "Data/";
+#else
+    if (std::filesystem::exists("./Data/")) dataPath = "./Data/";
+    else dataPath = "../Data/";
+#endif
+
+	// Initialize sound system and play background music
+    auto audioSystem = std::make_unique<dae::MiniaudioSoundSystem>();
+    dae::ServiceLocator::register_sound_system(std::make_unique<dae::LoggingSoundSystem>(std::move(audioSystem)));
+    dae::ServiceLocator::get_sound_system().loadSound(0, dataPath + "AnimalCrossingNewHorizonsMainTheme.mp3");
+    dae::ServiceLocator::get_sound_system().play(0, 0.25);
+
     auto& sceneManager = dae::SceneManager::GetInstance();
 
 // MAIN MENU
@@ -163,11 +181,6 @@ void load()
         SDL_FRect{ 0.0f, 460.0f, 612.0f, 92.0f } // Horizontal
     };
 
-    std::vector<SDL_FRect> projectScenePlanks =
-    {
-        SDL_FRect{ 632.0f, 0.0f, 108.0f, 424.0f } // Vertical
-    };
-
 	// Main Menu -> About
     tComp1->SetOnTriggerEnter([player2Ptr, aboutScenePlanks]() {
         std::cout << "Going to About Scene...\n";
@@ -189,12 +202,13 @@ void load()
         });
 
 	// Main Menu -> Projects
-    tComp3->SetOnTriggerEnter([player4Ptr, projectScenePlanks]() {
+    // The only one the player can walk around!
+    tComp3->SetOnTriggerEnter([player4Ptr]() {
         std::cout << "Going to Projects Scene...\n";
         dae::InputManager::GetInstance().UnbindAll();
-        dae::SceneManager::GetInstance().TransitionToScene(3, [player4Ptr, projectScenePlanks]() {
+        dae::SceneManager::GetInstance().TransitionToScene(3, [player4Ptr]() {
             player4Ptr->SetLocalPosition(642.5f, 95.0f);
-            BindPlayerInputs(player4Ptr, projectScenePlanks);
+            BindPlayerInputs(player4Ptr);
             });
         });
 

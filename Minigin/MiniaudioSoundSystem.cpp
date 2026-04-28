@@ -24,7 +24,8 @@ namespace dae
     public:
         MiniaudioSoundSystemImpl()
         {
-            if (ma_engine_init(NULL, &m_AudioEngine) != MA_SUCCESS) {
+            if (ma_engine_init(NULL, &m_AudioEngine) != MA_SUCCESS) 
+            {
                 std::cerr << "Failed to initialize miniaudio engine.\n";
             }
 
@@ -39,6 +40,10 @@ namespace dae
             m_Quit = true;
             m_Condition.notify_one();
 #endif
+            for (auto& pair : m_Sounds)
+            {
+                ma_sound_uninit(pair.second.get());
+            }
             ma_engine_uninit(&m_AudioEngine);
         }
 
@@ -49,15 +54,30 @@ namespace dae
             m_Queue.push({ id, volume });
             m_Condition.notify_one();
 #else
-            if (m_SoundPaths.contains(id)) {
-                ma_engine_play_sound(&m_AudioEngine, m_SoundPaths[id].c_str(), NULL);
+            if (m_Sounds.contains(id)) 
+            {
+                ma_sound_set_volume(m_Sounds[id].get(), volume);
+                if (ma_sound_at_end(m_Sounds[id].get())) 
+                {
+                    ma_sound_seek_to_pcm_frame(m_Sounds[id].get(), 0);
+                }
+                ma_sound_start(m_Sounds[id].get());
             }
 #endif
         }
 
         void LoadSound(sound_id id, const std::string& filePath)
         {
-            m_SoundPaths[id] = filePath;
+            auto sound = std::make_unique<ma_sound>();
+
+            if (ma_sound_init_from_file(&m_AudioEngine, filePath.c_str(), 0, NULL, NULL, sound.get()) == MA_SUCCESS) 
+            {
+                if (id == 0) 
+                {
+                    ma_sound_set_looping(sound.get(), MA_TRUE);
+                }
+                m_Sounds[id] = std::move(sound);
+            }
         }
 
         void ToggleMute()
@@ -81,9 +101,16 @@ namespace dae
                 m_Queue.pop();
                 lock.unlock();
 
-                if (m_SoundPaths.contains(request.id))
+                if (m_Sounds.contains(request.id))
                 {
-                    ma_engine_play_sound(&m_AudioEngine, m_SoundPaths[request.id].c_str(), NULL);
+                    ma_sound_set_volume(m_Sounds[request.id].get(), request.volume);
+
+                    if (ma_sound_at_end(m_Sounds[request.id].get())) 
+                    {
+                        ma_sound_seek_to_pcm_frame(m_Sounds[request.id].get(), 0);
+                    }
+
+                    ma_sound_start(m_Sounds[request.id].get());
                 }
             }
         }
@@ -96,7 +123,7 @@ namespace dae
 #endif
 
         ma_engine m_AudioEngine;
-        std::unordered_map<sound_id, std::string> m_SoundPaths;
+        std::unordered_map<sound_id, std::unique_ptr<ma_sound>> m_Sounds;
         bool m_Muted{ false };
     };
 
