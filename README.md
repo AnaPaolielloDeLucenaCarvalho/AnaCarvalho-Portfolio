@@ -11,7 +11,7 @@ It runs on a custom engine I've been developing for my Programming 4 final exam 
 ## How to Play
 
 - **Move:** `WASD` or `Arrow Keys`
-- **Interact:** Press `E`. When you're in the projects area and walk up to a flower and press `E`, this will open up different projects. Or when you're in the contact area, pull up my CV!
+- **Interact:** When you're in the projects area and walk up to a flower and press `E`, this will open up different projects.
 
 *Note: This experience was created in mind for desktop. I haven't added mobile mode yet, so please view it on a PC!*
 
@@ -22,3 +22,9 @@ It runs on a custom engine I've been developing for my Programming 4 final exam 
 If I'm learning to make games, my portfolio should probably reflect that! I wanted a fun, interactive way to showcase my code rather than just listing it on a static webpage. 
 
 This project acts as a live demonstration of my C++ skills. I also drew all the pixel art (with a lot of inspiration from Pinterest!) to give it a cosy vibe. It's compiled straight to WebAssembly so it can run smoothly in your browser. 
+
+---
+
+## Credits
+
+The music used in the portfolio is from Animal Crossing: New Horizons - all credits go to Nintendo
