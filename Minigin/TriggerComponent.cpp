@@ -60,7 +60,7 @@ namespace dae
         auto renderer = dae::Renderer::GetInstance().GetSDLRenderer();
         const auto& pos = GetOwner()->GetTransform().GetPosition();
 
-        Uint8 r, g, b, a;
+        /*Uint8 r, g, b, a;
         SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a);
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
@@ -78,6 +78,6 @@ namespace dae
             SDL_RenderRect(renderer, &rect);
         }
 
-        SDL_SetRenderDrawColor(renderer, r, g, b, a);
+        SDL_SetRenderDrawColor(renderer, r, g, b, a);*/
     }
 }

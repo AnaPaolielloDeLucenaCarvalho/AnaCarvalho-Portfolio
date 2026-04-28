@@ -48,7 +48,7 @@ void load()
 
     std::string dataPath = "";
 #ifdef __EMSCRIPTEN__
-    dataPath = "Data/";
+    dataPath = "";
 #else
     if (std::filesystem::exists("./Data/")) dataPath = "./Data/";
     else dataPath = "../Data/";
