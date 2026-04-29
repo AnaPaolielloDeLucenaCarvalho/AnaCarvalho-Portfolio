@@ -20,11 +20,15 @@
 #include "MiniaudioSoundSystem.h"
 #include "LoggingSoundSystem.h"
 #include "ServiceLocator.h"
+#include <chrono>
 
 namespace fs = std::filesystem;
 
 // INTERACTION SYSTEM
 std::vector<std::pair<dae::TriggerComponent*, std::function<void()>>> g_ProjectInteractions;
+
+bool g_IsMuted = false;
+std::vector<std::pair<dae::GameObject*, dae::GameObject*>> g_SoundIcons;
 
 class ActionCommand : public dae::Command
 {
@@ -33,6 +37,66 @@ public:
     ActionCommand(std::function<void()> action) : m_Action(action) {}
     void Execute(float /*deltaTime*/) override { if (m_Action) m_Action(); }
 };
+
+void ToggleMuteGlobal()
+{
+    static auto lastToggleTime = std::chrono::steady_clock::now();
+    auto currentTime = std::chrono::steady_clock::now();
+
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastToggleTime).count() < 250) {
+        return;
+    }
+    lastToggleTime = currentTime;
+
+    dae::ServiceLocator::get_sound_system().ToggleMute();
+    g_IsMuted = !g_IsMuted;
+
+    for (auto& icons : g_SoundIcons)
+    {
+        if (g_IsMuted)
+        {
+            icons.first->SetLocalPosition(-2000.0f, -2000.0f);
+            icons.second->SetLocalPosition(1306.0f, 32.0f);
+        }
+        else
+        {
+            icons.first->SetLocalPosition(1306.0f, 20.0f);
+            icons.second->SetLocalPosition(-2000.0f, -2000.0f);
+        }
+    }
+}
+
+void AddMuteIconsToScene(dae::Scene& scene)
+{
+    auto soundOn = std::make_unique<dae::GameObject>();
+    soundOn->AddComponent<dae::RenderComponent>("SoundOn.png");
+    auto soundOnPtr = soundOn.get();
+
+    auto soundOff = std::make_unique<dae::GameObject>();
+    soundOff->AddComponent<dae::RenderComponent>("SoundOff.png");
+    auto soundOffPtr = soundOff.get();
+
+    auto f2 = std::make_unique<dae::GameObject>();
+    f2->AddComponent<dae::RenderComponent>("F2.png");
+    f2->SetLocalPosition(1250.0f, 22.0f);
+
+    if (g_IsMuted)
+    {
+        soundOnPtr->SetLocalPosition(-2000.0f, -2000.0f);
+        soundOffPtr->SetLocalPosition(1306.0f, 32.0f);
+    }
+    else
+    {
+        soundOnPtr->SetLocalPosition(1306.0f, 20.0f);
+        soundOffPtr->SetLocalPosition(-2000.0f, -2000.0f);
+    }
+
+    g_SoundIcons.push_back({ soundOnPtr, soundOffPtr });
+
+    scene.Add(std::move(soundOn));
+    scene.Add(std::move(soundOff));
+    scene.Add(std::move(f2));
+}
 
 // INPUT BINDINGS
 void BindPlayerInputs(dae::GameObject* playerPtr, const std::vector<SDL_FRect>& walkableZones = {}, bool canInteract = false)
@@ -53,6 +117,9 @@ void BindPlayerInputs(dae::GameObject* playerPtr, const std::vector<SDL_FRect>& 
     input.BindCommand(SDL_SCANCODE_DOWN, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ 0, 1 }, playerSpeed, walkableZones));
     input.BindCommand(SDL_SCANCODE_LEFT, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ -1, 0 }, playerSpeed, walkableZones));
     input.BindCommand(SDL_SCANCODE_RIGHT, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ 1, 0 }, playerSpeed, walkableZones));
+
+    // F2 to Mute
+    input.BindCommand(SDL_SCANCODE_F2, dae::KeyState::Pressed, std::make_unique<ActionCommand>(ToggleMuteGlobal));
 
     // "E" to interact
     if (canInteract) 
@@ -80,6 +147,9 @@ void BindProjectViewInputs(std::function<void()> onEsc, std::function<void()> on
     input.BindCommand(SDL_SCANCODE_ESCAPE, dae::KeyState::Pressed, std::make_unique<ActionCommand>(onEsc));
     input.BindCommand(SDL_SCANCODE_Q, dae::KeyState::Pressed, std::make_unique<ActionCommand>(onQ));
     input.BindCommand(SDL_SCANCODE_E, dae::KeyState::Pressed, std::make_unique<ActionCommand>(onE));
+
+    // F2 to Mute
+    input.BindCommand(SDL_SCANCODE_F2, dae::KeyState::Pressed, std::make_unique<ActionCommand>(ToggleMuteGlobal));
 }
 
 // MAIN SCENE
@@ -120,6 +190,8 @@ void LoadMainMenu(dae::GameObject*& outPlayer, dae::TriggerComponent*& tAbout, d
     tProj = tr3->AddComponent<dae::TriggerComponent>(124.0f, 84.0f);
     tProj->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(tr3));
+
+    AddMuteIconsToScene(scene);
 }
 
 // ABOUT
@@ -141,6 +213,8 @@ void LoadAboutScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain)
     tMain = tr1->AddComponent<dae::TriggerComponent>(124.0f, 48.0f);
     tMain->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(tr1));
+
+    AddMuteIconsToScene(scene);
 }
 
 // CONTACT
@@ -162,6 +236,8 @@ void LoadContactScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain
     tMain = tr1->AddComponent<dae::TriggerComponent>(86.0f, 168.0f);
     tMain->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(tr1));
+
+    AddMuteIconsToScene(scene);
 }
 
 // PROJECT SCENE GENERATOR
@@ -195,6 +271,8 @@ void CreateSingleProjectScene(dae::TriggerComponent* flowerTrigger, const std::s
                 BindProjectViewInputs(onEsc, onQ, onE);
             });
         } });
+
+    AddMuteIconsToScene(scene);
 }
 
 // PROJECTS
@@ -263,6 +341,7 @@ void LoadProjectsScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMai
     }
 
     scene.Add(std::move(popupObj));
+    AddMuteIconsToScene(scene);
 }
 
 // LOAD GAME & MAIN
