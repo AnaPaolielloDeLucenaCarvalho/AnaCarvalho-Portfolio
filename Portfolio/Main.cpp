@@ -232,11 +232,11 @@ void LoadProjectsScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMai
     // { Trigger X/Y , Popup X/Y , Background Image }
     std::vector<ProjectInfo> projects = {
         { {692.0f, 484.0f}, {884.0f, 620.0f}, "Proj1_Bg.png" },
-        { {301.0f, 309.0f}, {488.0f, 445.0f}, "Proj1_Bg.png" },
-        { {8.0f, 29.0f},    {196.0f, 160.0f}, "Proj1_Bg.png" },
-        { {40.0f, 524.0f},  {217.0f, 648.0f}, "Proj1_Bg.png" },
-        { {789.0f, 45.0f},  {964.0f, 184.0f}, "Proj1_Bg.png" },
-        { {908.0f, 292.0f}, {1130.0f, 436.0f}, "Proj1_Bg.png" }
+        { {301.0f, 309.0f}, {488.0f, 445.0f}, "Proj2_Bg.png" },
+        { {8.0f, 29.0f}, {196.0f, 160.0f}, "Proj3_Bg.png" },
+        { {40.0f, 524.0f}, {217.0f, 648.0f}, "Proj4_Bg.png" },
+        { {789.0f, 45.0f}, {964.0f, 184.0f}, "Proj5_Bg.png" },
+        { {908.0f, 292.0f}, {1130.0f, 436.0f}, "Proj6_Bg.png" }
     };
 
     for (size_t i = 0; i < projects.size(); ++i)
