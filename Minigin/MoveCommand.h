@@ -8,7 +8,7 @@
 #include <vector>
 #include <SDL3/SDL_rect.h>
 
-namespace dae
+namespace portfolio
 {
     class MoveCommand : public Command
     {
@@ -76,7 +76,7 @@ namespace dae
                     m_pGameObject->SetLocalPosition(finalX, finalY);
                 }
 
-                auto spriteComp = m_pGameObject->GetComponent<dae::SpriteComponent>();
+                auto spriteComp = m_pGameObject->GetComponent<portfolio::SpriteComponent>();
                 if (spriteComp)
                 {
                     spriteComp->SetDirection(m_Direction);

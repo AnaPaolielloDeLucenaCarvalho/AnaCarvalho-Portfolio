@@ -4,7 +4,7 @@
 #include "Component.h"
 #include <glm/glm.hpp>
 
-namespace dae
+namespace portfolio
 {
     class Texture2D;
 

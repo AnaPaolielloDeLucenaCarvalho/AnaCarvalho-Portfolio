@@ -6,7 +6,7 @@
 #include "Texture2D.h"
 #include "GameObject.h" 
 
-namespace dae
+namespace portfolio
 {
     TextComponent::TextComponent(GameObject* pOwner, const std::string& text, std::shared_ptr<Font> font, const SDL_Color& color)
         : RenderComponent(pOwner)

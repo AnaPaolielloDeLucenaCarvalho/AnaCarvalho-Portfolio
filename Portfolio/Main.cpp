@@ -27,12 +27,12 @@
 namespace fs = std::filesystem;
 
 // GLOBAL STATE & INTERACTION SYSTEM
-std::vector<std::pair<dae::TriggerComponent*, std::function<void()>>> g_ProjectInteractions;
+std::vector<std::pair<portfolio::TriggerComponent*, std::function<void()>>> g_ProjectInteractions;
 
 bool g_IsMuted = false;
-std::vector<std::pair<dae::GameObject*, dae::GameObject*>> g_SoundIcons;
+std::vector<std::pair<portfolio::GameObject*, portfolio::GameObject*>> g_SoundIcons;
 
-class ActionCommand : public dae::Command
+class ActionCommand : public portfolio::Command
 {
     std::function<void()> m_Action;
 public:
@@ -50,7 +50,7 @@ void ToggleMuteGlobal()
     }
     lastToggleTime = currentTime;
 
-    dae::ServiceLocator::get_sound_system().ToggleMute();
+    portfolio::ServiceLocator::get_sound_system().ToggleMute();
     g_IsMuted = !g_IsMuted;
 
     for (auto& icons : g_SoundIcons)
@@ -68,18 +68,18 @@ void ToggleMuteGlobal()
     }
 }
 
-void AddMuteIconsToScene(dae::Scene& scene)
+void AddMuteIconsToScene(portfolio::Scene& scene)
 {
-    auto soundOn = std::make_unique<dae::GameObject>();
-    soundOn->AddComponent<dae::RenderComponent>("SoundOn.png");
+    auto soundOn = std::make_unique<portfolio::GameObject>();
+    soundOn->AddComponent<portfolio::RenderComponent>("SoundOn.png");
     auto soundOnPtr = soundOn.get();
 
-    auto soundOff = std::make_unique<dae::GameObject>();
-    soundOff->AddComponent<dae::RenderComponent>("SoundOff.png");
+    auto soundOff = std::make_unique<portfolio::GameObject>();
+    soundOff->AddComponent<portfolio::RenderComponent>("SoundOff.png");
     auto soundOffPtr = soundOff.get();
 
-    auto f2 = std::make_unique<dae::GameObject>();
-    f2->AddComponent<dae::RenderComponent>("F2.png");
+    auto f2 = std::make_unique<portfolio::GameObject>();
+    f2->AddComponent<portfolio::RenderComponent>("F2.png");
     f2->SetLocalPosition(1250.0f, 22.0f);
 
     if (g_IsMuted)
@@ -105,16 +105,16 @@ enum class Surface { None, Wood, Grass };
 Surface g_CurrentSurface = Surface::Wood;
 std::chrono::steady_clock::time_point g_LastFootstepTime = std::chrono::steady_clock::now();
 
-class PlayerMoveCommand : public dae::Command 
+class PlayerMoveCommand : public portfolio::Command 
 {
-    std::unique_ptr<dae::MoveCommand> m_MoveCmd;
-    dae::GameObject* m_Player;
+    std::unique_ptr<portfolio::MoveCommand> m_MoveCmd;
+    portfolio::GameObject* m_Player;
     std::vector<SDL_FRect> m_WoodZones;
     bool m_AlwaysWood;
 
 public:
-    PlayerMoveCommand(dae::GameObject* player, glm::vec2 dir, float speed, const std::vector<SDL_FRect>& walkableZones, bool alwaysWood, const std::vector<SDL_FRect>& woodZones)
-        : m_MoveCmd(std::make_unique<dae::MoveCommand>(player, dir, speed, walkableZones))
+    PlayerMoveCommand(portfolio::GameObject* player, glm::vec2 dir, float speed, const std::vector<SDL_FRect>& walkableZones, bool alwaysWood, const std::vector<SDL_FRect>& woodZones)
+        : m_MoveCmd(std::make_unique<portfolio::MoveCommand>(player, dir, speed, walkableZones))
         , m_Player(player)
         , m_WoodZones(woodZones)
         , m_AlwaysWood(alwaysWood) 
@@ -150,7 +150,7 @@ public:
                 }
             }
 
-            auto& ss = dae::ServiceLocator::get_sound_system();
+            auto& ss = portfolio::ServiceLocator::get_sound_system();
 
             if (g_CurrentSurface != newSurface)
             {
@@ -173,35 +173,35 @@ public:
                 g_LastFootstepTime = now;
 
                 int soundId = (newSurface == Surface::Wood) ? (1 + (std::rand() % 5)) : (6 + (std::rand() % 5));
-                ss.play(static_cast<dae::sound_id>(soundId), 0.15f);
+                ss.play(static_cast<portfolio::sound_id>(soundId), 0.15f);
             }
         }
     }
 };
 
 // INPUT BINDINGS
-void BindPlayerInputs(dae::GameObject* playerPtr, const std::vector<SDL_FRect>& walkableZones = {}, bool canInteract = false, bool alwaysWood = true, const std::vector<SDL_FRect>& woodZones = {})
+void BindPlayerInputs(portfolio::GameObject* playerPtr, const std::vector<SDL_FRect>& walkableZones = {}, bool canInteract = false, bool alwaysWood = true, const std::vector<SDL_FRect>& woodZones = {})
 {
-    auto& input = dae::InputManager::GetInstance();
+    auto& input = portfolio::InputManager::GetInstance();
     input.UnbindAll();
 
     float playerSpeed = 150.0f;
 
-    input.BindCommand(SDL_SCANCODE_W, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, -1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
-    input.BindCommand(SDL_SCANCODE_S, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, 1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
-    input.BindCommand(SDL_SCANCODE_A, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ -1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
-    input.BindCommand(SDL_SCANCODE_D, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_W, portfolio::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, -1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_S, portfolio::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, 1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_A, portfolio::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ -1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_D, portfolio::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
 
-    input.BindCommand(SDL_SCANCODE_UP, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, -1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
-    input.BindCommand(SDL_SCANCODE_DOWN, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, 1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
-    input.BindCommand(SDL_SCANCODE_LEFT, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ -1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
-    input.BindCommand(SDL_SCANCODE_RIGHT, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_UP, portfolio::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, -1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_DOWN, portfolio::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, 1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_LEFT, portfolio::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ -1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_RIGHT, portfolio::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
 
-    input.BindCommand(SDL_SCANCODE_F2, dae::KeyState::Pressed, std::make_unique<ActionCommand>(ToggleMuteGlobal));
+    input.BindCommand(SDL_SCANCODE_F2, portfolio::KeyState::Pressed, std::make_unique<ActionCommand>(ToggleMuteGlobal));
 
     if (canInteract)
     {
-        input.BindCommand(SDL_SCANCODE_E, dae::KeyState::Pressed, std::make_unique<ActionCommand>([]()
+        input.BindCommand(SDL_SCANCODE_E, portfolio::KeyState::Pressed, std::make_unique<ActionCommand>([]()
             {
                 for (auto& interaction : g_ProjectInteractions)
                 {
@@ -218,114 +218,114 @@ void BindPlayerInputs(dae::GameObject* playerPtr, const std::vector<SDL_FRect>& 
 // BIND PROJECTS (ESC to leave, Q/E carousels)
 void BindProjectViewInputs(std::function<void()> onEsc, std::function<void()> onQ, std::function<void()> onE)
 {
-    auto& input = dae::InputManager::GetInstance();
+    auto& input = portfolio::InputManager::GetInstance();
     input.UnbindAll();
 
-    input.BindCommand(SDL_SCANCODE_ESCAPE, dae::KeyState::Pressed, std::make_unique<ActionCommand>(onEsc));
-    input.BindCommand(SDL_SCANCODE_Q, dae::KeyState::Pressed, std::make_unique<ActionCommand>(onQ));
-    input.BindCommand(SDL_SCANCODE_E, dae::KeyState::Pressed, std::make_unique<ActionCommand>(onE));
+    input.BindCommand(SDL_SCANCODE_ESCAPE, portfolio::KeyState::Pressed, std::make_unique<ActionCommand>(onEsc));
+    input.BindCommand(SDL_SCANCODE_Q, portfolio::KeyState::Pressed, std::make_unique<ActionCommand>(onQ));
+    input.BindCommand(SDL_SCANCODE_E, portfolio::KeyState::Pressed, std::make_unique<ActionCommand>(onE));
 
-    input.BindCommand(SDL_SCANCODE_F2, dae::KeyState::Pressed, std::make_unique<ActionCommand>(ToggleMuteGlobal));
+    input.BindCommand(SDL_SCANCODE_F2, portfolio::KeyState::Pressed, std::make_unique<ActionCommand>(ToggleMuteGlobal));
 }
 
 // SCENE BUILDERS
-void LoadMainMenu(dae::GameObject*& outPlayer, dae::TriggerComponent*& tAbout, dae::TriggerComponent*& tContact, dae::TriggerComponent*& tProj)
+void LoadMainMenu(portfolio::GameObject*& outPlayer, portfolio::TriggerComponent*& tAbout, portfolio::TriggerComponent*& tContact, portfolio::TriggerComponent*& tProj)
 {
-    auto& scene = dae::SceneManager::GetInstance().CreateScene();
+    auto& scene = portfolio::SceneManager::GetInstance().CreateScene();
 
-    auto bg = std::make_unique<dae::GameObject>();
-    bg->AddComponent<dae::RenderComponent>("MainMenuBackground.png");
+    auto bg = std::make_unique<portfolio::GameObject>();
+    bg->AddComponent<portfolio::RenderComponent>("MainMenuBackground.png");
     scene.Add(std::move(bg));
 
-    auto player = std::make_unique<dae::GameObject>();
-    player->AddComponent<dae::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
+    auto player = std::make_unique<portfolio::GameObject>();
+    player->AddComponent<portfolio::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
     player->SetLocalPosition(642.5f, 400.0f);
     outPlayer = player.get();
     scene.Add(std::move(player));
 
-    auto treeTop = std::make_unique<dae::GameObject>();
-    treeTop->AddComponent<dae::RenderComponent>("MainMenuTop.png");
+    auto treeTop = std::make_unique<portfolio::GameObject>();
+    treeTop->AddComponent<portfolio::RenderComponent>("MainMenuTop.png");
     treeTop->SetLocalPosition(159.0f, 442.0f);
     scene.Add(std::move(treeTop));
 
-    auto tr1 = std::make_unique<dae::GameObject>();
+    auto tr1 = std::make_unique<portfolio::GameObject>();
     tr1->SetLocalPosition(624.0f, 0);
-    tAbout = tr1->AddComponent<dae::TriggerComponent>(124.0f, 48.0f);
+    tAbout = tr1->AddComponent<portfolio::TriggerComponent>(124.0f, 48.0f);
     tAbout->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(tr1));
 
-    auto tr2 = std::make_unique<dae::GameObject>();
+    auto tr2 = std::make_unique<portfolio::GameObject>();
     tr2->SetLocalPosition(1280.0f, 388.0f);
-    tContact = tr2->AddComponent<dae::TriggerComponent>(86.0f, 168.0f);
+    tContact = tr2->AddComponent<portfolio::TriggerComponent>(86.0f, 168.0f);
     tContact->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(tr2));
 
-    auto tr3 = std::make_unique<dae::GameObject>();
+    auto tr3 = std::make_unique<portfolio::GameObject>();
     tr3->SetLocalPosition(624.0f, 684.0f);
-    tProj = tr3->AddComponent<dae::TriggerComponent>(124.0f, 84.0f);
+    tProj = tr3->AddComponent<portfolio::TriggerComponent>(124.0f, 84.0f);
     tProj->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(tr3));
 
     AddMuteIconsToScene(scene);
 }
 
-void LoadAboutScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain)
+void LoadAboutScene(portfolio::GameObject*& outPlayer, portfolio::TriggerComponent*& tMain)
 {
-    auto& scene = dae::SceneManager::GetInstance().CreateScene();
+    auto& scene = portfolio::SceneManager::GetInstance().CreateScene();
 
-    auto bg = std::make_unique<dae::GameObject>();
-    bg->AddComponent<dae::RenderComponent>("AboutBackground.png");
+    auto bg = std::make_unique<portfolio::GameObject>();
+    bg->AddComponent<portfolio::RenderComponent>("AboutBackground.png");
     scene.Add(std::move(bg));
 
-    auto player = std::make_unique<dae::GameObject>();
-    player->AddComponent<dae::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
+    auto player = std::make_unique<portfolio::GameObject>();
+    player->AddComponent<portfolio::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
     outPlayer = player.get();
     scene.Add(std::move(player));
 
-    auto tr1 = std::make_unique<dae::GameObject>();
+    auto tr1 = std::make_unique<portfolio::GameObject>();
     tr1->SetLocalPosition(624.0f, 720.0f);
-    tMain = tr1->AddComponent<dae::TriggerComponent>(124.0f, 48.0f);
+    tMain = tr1->AddComponent<portfolio::TriggerComponent>(124.0f, 48.0f);
     tMain->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(tr1));
 
     AddMuteIconsToScene(scene);
 }
 
-void LoadContactScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain)
+void LoadContactScene(portfolio::GameObject*& outPlayer, portfolio::TriggerComponent*& tMain)
 {
-    auto& scene = dae::SceneManager::GetInstance().CreateScene();
+    auto& scene = portfolio::SceneManager::GetInstance().CreateScene();
 
-    auto bg = std::make_unique<dae::GameObject>();
-    bg->AddComponent<dae::RenderComponent>("ContactBackground.png");
+    auto bg = std::make_unique<portfolio::GameObject>();
+    bg->AddComponent<portfolio::RenderComponent>("ContactBackground.png");
     scene.Add(std::move(bg));
 
-    auto player = std::make_unique<dae::GameObject>();
-    player->AddComponent<dae::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
+    auto player = std::make_unique<portfolio::GameObject>();
+    player->AddComponent<portfolio::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
     outPlayer = player.get();
     scene.Add(std::move(player));
 
-    auto tr1 = std::make_unique<dae::GameObject>();
+    auto tr1 = std::make_unique<portfolio::GameObject>();
     tr1->SetLocalPosition(0, 388.0f);
-    tMain = tr1->AddComponent<dae::TriggerComponent>(86.0f, 168.0f);
+    tMain = tr1->AddComponent<portfolio::TriggerComponent>(86.0f, 168.0f);
     tMain->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(tr1));
 
     AddMuteIconsToScene(scene);
 }
 
-void CreateSingleProjectScene(dae::TriggerComponent* flowerTrigger, const std::string& bgName, dae::GameObject* projectsPlayerPtr, int targetSceneIndex)
+void CreateSingleProjectScene(portfolio::TriggerComponent* flowerTrigger, const std::string& bgName, portfolio::GameObject* projectsPlayerPtr, int targetSceneIndex)
 {
-    auto& scene = dae::SceneManager::GetInstance().CreateScene();
+    auto& scene = portfolio::SceneManager::GetInstance().CreateScene();
 
-    auto bg = std::make_unique<dae::GameObject>();
-    bg->AddComponent<dae::RenderComponent>(bgName);
+    auto bg = std::make_unique<portfolio::GameObject>();
+    bg->AddComponent<portfolio::RenderComponent>(bgName);
     scene.Add(std::move(bg));
 
     auto onEsc = [projectsPlayerPtr]()
         {
             std::cout << "Returning to Projects...\n";
 
-            dae::SceneManager::GetInstance().TransitionToScene(3, [projectsPlayerPtr]()
+            portfolio::SceneManager::GetInstance().TransitionToScene(3, [projectsPlayerPtr]()
                 {
                     std::vector<SDL_FRect> projectsWoodZones = { SDL_FRect{ 636.0f, 0.0f, 100.0f, 272.0f } };
                     BindPlayerInputs(projectsPlayerPtr, {}, true, false, projectsWoodZones);
@@ -339,7 +339,7 @@ void CreateSingleProjectScene(dae::TriggerComponent* flowerTrigger, const std::s
     {
         std::cout << "Loading Project Screen...\n";
 
-        dae::SceneManager::GetInstance().TransitionToScene(targetSceneIndex, [onEsc, onQ, onE]()
+        portfolio::SceneManager::GetInstance().TransitionToScene(targetSceneIndex, [onEsc, onQ, onE]()
         {
                 BindProjectViewInputs(onEsc, onQ, onE);
             });
@@ -348,28 +348,28 @@ void CreateSingleProjectScene(dae::TriggerComponent* flowerTrigger, const std::s
     AddMuteIconsToScene(scene);
 }
 
-void LoadProjectsScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain)
+void LoadProjectsScene(portfolio::GameObject*& outPlayer, portfolio::TriggerComponent*& tMain)
 {
-    auto& scene = dae::SceneManager::GetInstance().CreateScene();
+    auto& scene = portfolio::SceneManager::GetInstance().CreateScene();
 
-    auto bg = std::make_unique<dae::GameObject>();
-    bg->AddComponent<dae::RenderComponent>("ProjectsBackground.png");
+    auto bg = std::make_unique<portfolio::GameObject>();
+    bg->AddComponent<portfolio::RenderComponent>("ProjectsBackground.png");
     scene.Add(std::move(bg));
 
-    auto popupObj = std::make_unique<dae::GameObject>();
-    popupObj->AddComponent<dae::RenderComponent>("PressE.png");
+    auto popupObj = std::make_unique<portfolio::GameObject>();
+    popupObj->AddComponent<portfolio::RenderComponent>("PressE.png");
     popupObj->SetLocalPosition(-2000.0f, -2000.0f);
     auto popupPtr = popupObj.get();
     scene.Add(std::move(popupObj));
 
-    auto player = std::make_unique<dae::GameObject>();
-    player->AddComponent<dae::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
+    auto player = std::make_unique<portfolio::GameObject>();
+    player->AddComponent<portfolio::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
     outPlayer = player.get();
     scene.Add(std::move(player));
 
-    auto trMain = std::make_unique<dae::GameObject>();
+    auto trMain = std::make_unique<portfolio::GameObject>();
     trMain->SetLocalPosition(624.0f, 0.0f);
-    tMain = trMain->AddComponent<dae::TriggerComponent>(124.0f, 84.0f);
+    tMain = trMain->AddComponent<portfolio::TriggerComponent>(124.0f, 84.0f);
     tMain->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(trMain));
 
@@ -390,9 +390,9 @@ void LoadProjectsScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMai
 
     for (size_t i = 0; i < projects.size(); ++i)
     {
-        auto flowerObj = std::make_unique<dae::GameObject>();
+        auto flowerObj = std::make_unique<portfolio::GameObject>();
         flowerObj->SetLocalPosition(projects[i].triggerPos.x, projects[i].triggerPos.y);
-        auto tComp = flowerObj->AddComponent<dae::TriggerComponent>(223.0f, 223.0f);
+        auto tComp = flowerObj->AddComponent<portfolio::TriggerComponent>(223.0f, 223.0f);
         tComp->SetTarget(outPlayer, 88.0f, 120.0f);
 
         glm::vec2 customPopupPos = projects[i].popupPos;
@@ -428,9 +428,9 @@ void load()
 #endif
 
     // LOAD AUDIO SYSTEM
-    auto audioSystem = std::make_unique<dae::MiniaudioSoundSystem>();
-    dae::ServiceLocator::register_sound_system(std::make_unique<dae::LoggingSoundSystem>(std::move(audioSystem)));
-    auto& ss = dae::ServiceLocator::get_sound_system();
+    auto audioSystem = std::make_unique<portfolio::MiniaudioSoundSystem>();
+    portfolio::ServiceLocator::register_sound_system(std::make_unique<portfolio::LoggingSoundSystem>(std::move(audioSystem)));
+    auto& ss = portfolio::ServiceLocator::get_sound_system();
 
     ss.loadSound(0, dataPath + "AnimalCrossingNewHorizonsMainTheme.mp3");
     ss.play(0, 0.25f);
@@ -452,9 +452,9 @@ void load()
     ss.loadSound(11, dataPath + "SoundEffects/Jump_Wood_00.wav");
     ss.loadSound(12, dataPath + "SoundEffects/Jump_Grass_00.wav");
 
-    dae::GameObject* p1, * p2, * p3, * p4;
-    dae::TriggerComponent* tMainToAbout, * tMainToContact, * tMainToProj;
-    dae::TriggerComponent* tAboutToMain, * tContactToMain, * tProjToMain;
+    portfolio::GameObject* p1, * p2, * p3, * p4;
+    portfolio::TriggerComponent* tMainToAbout, * tMainToContact, * tMainToProj;
+    portfolio::TriggerComponent* tAboutToMain, * tContactToMain, * tProjToMain;
 
     LoadMainMenu(p1, tMainToAbout, tMainToContact, tMainToProj);
     LoadAboutScene(p2, tAboutToMain);
@@ -473,8 +473,8 @@ void load()
 
     tMainToAbout->SetOnTriggerEnter([p2, aboutScenePlanks]()
         {
-            dae::InputManager::GetInstance().UnbindAll();
-            dae::SceneManager::GetInstance().TransitionToScene(1, [p2, aboutScenePlanks]()
+            portfolio::InputManager::GetInstance().UnbindAll();
+            portfolio::SceneManager::GetInstance().TransitionToScene(1, [p2, aboutScenePlanks]()
                 {
                     p2->SetLocalPosition(642.5f, 768.0f - 160.0f);
                     BindPlayerInputs(p2, aboutScenePlanks, false, true); // true = always Wood
@@ -483,8 +483,8 @@ void load()
 
     tMainToContact->SetOnTriggerEnter([p3, contactScenePlanks]()
         {
-            dae::InputManager::GetInstance().UnbindAll();
-            dae::SceneManager::GetInstance().TransitionToScene(2, [p3, contactScenePlanks]()
+            portfolio::InputManager::GetInstance().UnbindAll();
+            portfolio::SceneManager::GetInstance().TransitionToScene(2, [p3, contactScenePlanks]()
                 {
                     p3->SetLocalPosition(150.0f, 400.0f);
                     BindPlayerInputs(p3, contactScenePlanks, false, true); // true = always Wood
@@ -493,8 +493,8 @@ void load()
 
     tMainToProj->SetOnTriggerEnter([p4, projectsWoodZones]()
         {
-            dae::InputManager::GetInstance().UnbindAll();
-            dae::SceneManager::GetInstance().TransitionToScene(3, [p4, projectsWoodZones]()
+            portfolio::InputManager::GetInstance().UnbindAll();
+            portfolio::SceneManager::GetInstance().TransitionToScene(3, [p4, projectsWoodZones]()
                 {
                     p4->SetLocalPosition(642.5f, 95.0f);
 					BindPlayerInputs(p4, {}, true, false, projectsWoodZones); // false = not always wood
@@ -503,8 +503,8 @@ void load()
 
     tAboutToMain->SetOnTriggerEnter([p1, mainScenePlanks]()
         {
-            dae::InputManager::GetInstance().UnbindAll();
-            dae::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]()
+            portfolio::InputManager::GetInstance().UnbindAll();
+            portfolio::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]()
                 {
                     p1->SetLocalPosition(642.5f, 95.0f);
                     BindPlayerInputs(p1, mainScenePlanks, false, true);
@@ -513,8 +513,8 @@ void load()
 
     tContactToMain->SetOnTriggerEnter([p1, mainScenePlanks]()
         {
-            dae::InputManager::GetInstance().UnbindAll();
-            dae::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]()
+            portfolio::InputManager::GetInstance().UnbindAll();
+            portfolio::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]()
                 {
                     p1->SetLocalPosition(1366.0f - 250.0f, 400.0f);
                     BindPlayerInputs(p1, mainScenePlanks, false, true);
@@ -523,8 +523,8 @@ void load()
 
     tProjToMain->SetOnTriggerEnter([p1, mainScenePlanks]()
         {
-            dae::InputManager::GetInstance().UnbindAll();
-            dae::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]()
+            portfolio::InputManager::GetInstance().UnbindAll();
+            portfolio::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]()
                 {
                     p1->SetLocalPosition(642.5f, 768.0f - 250.0f);
                     BindPlayerInputs(p1, mainScenePlanks, false, true);
@@ -533,7 +533,7 @@ void load()
 
     // START GAME
     BindPlayerInputs(p1, mainScenePlanks, false, true); // true = Always Wood
-    dae::SceneManager::GetInstance().SetActiveScene(0);
+    portfolio::SceneManager::GetInstance().SetActiveScene(0);
 }
 
 int main(int, char* [])
@@ -550,7 +550,7 @@ int main(int, char* [])
     }
 #endif
 
-    dae::Minigin engine(data_location);
+    portfolio::Minigin engine(data_location);
     engine.Run(load);
 
     return 0;

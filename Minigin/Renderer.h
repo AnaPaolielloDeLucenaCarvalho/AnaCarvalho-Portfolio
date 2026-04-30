@@ -2,7 +2,7 @@
 #include <SDL3/SDL.h>
 #include "Singleton.h"
 
-namespace dae
+namespace portfolio
 {
 	class Texture2D;
 	/**

@@ -2,7 +2,7 @@
 #include "Scene.h"
 #include "Renderer.h"
 
-void dae::SceneManager::Update(float deltaTime)
+void portfolio::SceneManager::Update(float deltaTime)
 {
     if (m_IsFading)
     {
@@ -36,7 +36,7 @@ void dae::SceneManager::Update(float deltaTime)
     }
 }
 
-void dae::SceneManager::Render()
+void portfolio::SceneManager::Render()
 {
     if (m_ActiveSceneIndex < m_scenes.size())
     {
@@ -45,7 +45,7 @@ void dae::SceneManager::Render()
 
     if (m_IsFading)
     {
-        auto renderer = dae::Renderer::GetInstance().GetSDLRenderer();
+        auto renderer = portfolio::Renderer::GetInstance().GetSDLRenderer();
 
         SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
@@ -57,7 +57,7 @@ void dae::SceneManager::Render()
     }
 }
 
-void dae::SceneManager::TransitionToScene(size_t index, std::function<void()> onTransitionComplete)
+void portfolio::SceneManager::TransitionToScene(size_t index, std::function<void()> onTransitionComplete)
 {
     if (m_IsFading) return;
 
@@ -68,7 +68,7 @@ void dae::SceneManager::TransitionToScene(size_t index, std::function<void()> on
     m_OnTransitionComplete = onTransitionComplete;
 }
 
-dae::Scene& dae::SceneManager::CreateScene()
+portfolio::Scene& portfolio::SceneManager::CreateScene()
 {
 	m_scenes.push_back(std::unique_ptr<Scene>(new Scene()));
 	return *m_scenes.back();

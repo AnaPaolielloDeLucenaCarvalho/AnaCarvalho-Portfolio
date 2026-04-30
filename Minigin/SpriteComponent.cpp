@@ -4,7 +4,7 @@
 #include "GameObject.h"
 #include "Texture2D.h"
 
-namespace dae
+namespace portfolio
 {
     SpriteComponent::SpriteComponent(GameObject* pOwner, const std::string& filename, int cols, int rows, float frameTime)
         : Component(pOwner), m_Cols(cols), m_Rows(rows), m_FrameTime(frameTime)
@@ -16,7 +16,7 @@ namespace dae
         m_FrameHeight = size.y / m_Rows;
     }
 
-    void dae::SpriteComponent::Update(float deltaTime)
+    void portfolio::SpriteComponent::Update(float deltaTime)
     {
         if (!m_WasMovedThisFrame)
         {
@@ -39,7 +39,7 @@ namespace dae
         m_WasMovedThisFrame = false;
     }
 
-    void dae::SpriteComponent::Render() const
+    void portfolio::SpriteComponent::Render() const
     {
         if (m_texture == nullptr) return;
 
@@ -58,7 +58,7 @@ namespace dae
         const auto flip = m_isFlipped ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
         SDL_RenderTextureRotated(
-            dae::Renderer::GetInstance().GetSDLRenderer(),
+            portfolio::Renderer::GetInstance().GetSDLRenderer(),
             m_texture->GetSDLTexture(),
             &srcRect,
             &dstRect,
@@ -68,7 +68,7 @@ namespace dae
         );
     }
 
-    void dae::SpriteComponent::SetDirection(const glm::vec2& dir)
+    void portfolio::SpriteComponent::SetDirection(const glm::vec2& dir)
     {
         if (dir.y < 0) m_CurrentRow = 0; // Up
         else if (dir.y > 0) m_CurrentRow = 1; // Down

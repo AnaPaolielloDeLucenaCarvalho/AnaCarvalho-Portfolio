@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "Observer.h"
 
-namespace dae
+namespace portfolio
 {
     class Subject
     {

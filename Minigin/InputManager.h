@@ -9,7 +9,7 @@
 #include <memory>
 #include <SDL3/SDL.h>
 
-namespace dae
+namespace portfolio
 {
     enum class KeyState
     { 

@@ -2,7 +2,7 @@
 #include "Component.h"
 #include <functional>
 
-namespace dae
+namespace portfolio
 {
     class TriggerComponent : public Component
     {

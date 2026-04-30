@@ -3,7 +3,7 @@
 
 #include "Component.h"
 
-namespace dae
+namespace portfolio
 {
     class FPSComponent final : public Component
     {

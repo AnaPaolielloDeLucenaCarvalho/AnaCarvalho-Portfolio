@@ -7,7 +7,7 @@
 #include "Transform.h"
 #include "Component.h"
 
-namespace dae
+namespace portfolio
 {
 	class GameObject final
 	{

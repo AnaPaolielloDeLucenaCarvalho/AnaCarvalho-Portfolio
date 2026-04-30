@@ -1,7 +1,7 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
-namespace dae
+namespace portfolio
 {
     class Command
     {

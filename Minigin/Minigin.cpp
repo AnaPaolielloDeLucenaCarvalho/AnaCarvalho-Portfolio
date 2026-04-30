@@ -40,7 +40,7 @@ void LogSDLVersion(const std::string& message, int major, int minor, int patch)
 
 void LoopCallback(void* arg)
 {
-	static_cast<dae::Minigin*>(arg)->RunOneFrame();
+	static_cast<portfolio::Minigin*>(arg)->RunOneFrame();
 }
 #endif
 
@@ -60,7 +60,7 @@ void PrintSDLVersion()
 	LogSDLVersion("Linked with SDL_ttf ", SDL_VERSIONNUM_MAJOR(version), SDL_VERSIONNUM_MINOR(version),	SDL_VERSIONNUM_MICRO(version));
 }
 
-dae::Minigin::Minigin(const std::filesystem::path& dataPath)
+portfolio::Minigin::Minigin(const std::filesystem::path& dataPath)
 {
 	PrintSDLVersion();
 
@@ -85,7 +85,7 @@ dae::Minigin::Minigin(const std::filesystem::path& dataPath)
 	ResourceManager::GetInstance().Init(dataPath);
 }
 
-dae::Minigin::~Minigin()
+portfolio::Minigin::~Minigin()
 {
 	Renderer::GetInstance().Destroy();
 	SDL_DestroyWindow(g_window);
@@ -93,7 +93,7 @@ dae::Minigin::~Minigin()
 	SDL_Quit();
 }
 
-void dae::Minigin::Run(const std::function<void()>& load)
+void portfolio::Minigin::Run(const std::function<void()>& load)
 {
 	load();
 #ifndef __EMSCRIPTEN__
@@ -104,7 +104,7 @@ void dae::Minigin::Run(const std::function<void()>& load)
 #endif
 }
 
-void dae::Minigin::RunOneFrame()
+void portfolio::Minigin::RunOneFrame()
 {
 	#if USE_STEAMWORKS
 		SteamAPI_RunCallbacks();

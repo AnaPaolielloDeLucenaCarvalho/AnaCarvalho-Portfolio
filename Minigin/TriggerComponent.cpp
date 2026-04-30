@@ -4,14 +4,14 @@
 #include <SDL3/SDL_render.h>
 #include "Renderer.h"
 
-namespace dae
+namespace portfolio
 {
     TriggerComponent::TriggerComponent(GameObject* pOwner, float width, float height)
         : Component(pOwner), m_Width(width), m_Height(height)
     {
     }
 
-    void dae::TriggerComponent::Update(float /*deltaTime*/)
+    void portfolio::TriggerComponent::Update(float /*deltaTime*/)
     {
         if (!m_Target || !m_OnTriggerEnter) return;
 
@@ -51,7 +51,7 @@ namespace dae
     }
 
     // Add this function anywhere in the .cpp file:
-    void dae::TriggerComponent::SetOnTriggerExit(std::function<void()> callback)
+    void portfolio::TriggerComponent::SetOnTriggerExit(std::function<void()> callback)
     {
         m_OnTriggerExit = callback;
     }
@@ -68,7 +68,7 @@ namespace dae
         m_OnTriggerEnter = callback;
     }
 
-    void dae::TriggerComponent::Render() const
+    void portfolio::TriggerComponent::Render() const
     {
         /*auto renderer = dae::Renderer::GetInstance().GetSDLRenderer();
         const auto& pos = GetOwner()->GetTransform().GetPosition();

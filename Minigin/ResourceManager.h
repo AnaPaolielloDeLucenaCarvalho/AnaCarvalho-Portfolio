@@ -5,7 +5,7 @@
 #include <map>
 #include "Singleton.h"
 
-namespace dae
+namespace portfolio
 {
 	class Texture2D;
 	class Font;

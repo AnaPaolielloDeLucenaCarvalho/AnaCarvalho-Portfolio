@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "InputManager.h"
 
-namespace dae
+namespace portfolio
 {
     InputManager::InputManager()
     {

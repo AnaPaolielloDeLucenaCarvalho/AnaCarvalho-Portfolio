@@ -6,7 +6,7 @@
 #include "RenderComponent.h"
 #include <SDL3/SDL.h>
 
-namespace dae
+namespace portfolio
 {
     class Font;
 

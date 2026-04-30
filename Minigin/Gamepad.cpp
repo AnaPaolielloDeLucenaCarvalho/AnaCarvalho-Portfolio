@@ -6,7 +6,7 @@
 #include <Xinput.h>
 #pragma comment(lib, "xinput.lib")
 
-namespace dae
+namespace portfolio
 {
     class Gamepad::GamepadImpl
     {
@@ -44,7 +44,7 @@ namespace dae
 #else 
 #include <SDL3/SDL.h>
 
-namespace dae
+namespace portfolio
 {
     class Gamepad::GamepadImpl
     {
@@ -115,7 +115,7 @@ namespace dae
 }
 #endif
 
-namespace dae
+namespace portfolio
 {
     Gamepad::Gamepad(unsigned int index) : m_pImpl(std::make_unique<GamepadImpl>(index)) {}
     Gamepad::~Gamepad() = default;

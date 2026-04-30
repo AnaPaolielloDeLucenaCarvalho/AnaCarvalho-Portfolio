@@ -4,7 +4,7 @@
 #include "GameObject.h"
 #include "Texture2D.h"
 
-namespace dae
+namespace portfolio
 {
     RenderComponent::RenderComponent(GameObject* pOwner)
         : Component(pOwner), m_texture(nullptr)
@@ -19,7 +19,7 @@ namespace dae
 
     void RenderComponent::Update(float /*deltaTime*/) {}
 
-    void dae::RenderComponent::Render() const
+    void portfolio::RenderComponent::Render() const
     {
         if (m_texture == nullptr) return;
 
@@ -35,7 +35,7 @@ namespace dae
 
         SDL_FRect dst{ pos.x, pos.y, scaledW, scaledH };
         SDL_RenderTextureRotated(
-            dae::Renderer::GetInstance().GetSDLRenderer(),
+            portfolio::Renderer::GetInstance().GetSDLRenderer(),
             m_texture->GetSDLTexture(),
             nullptr,
             &dst,

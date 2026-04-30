@@ -5,7 +5,7 @@
 #include "GameObject.h"
 #include <cmath> // cos and sin
 
-namespace dae
+namespace portfolio
 {
 	class RotatorComponent final : public Component
 	{

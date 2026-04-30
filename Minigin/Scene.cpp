@@ -1,7 +1,7 @@
 #include <algorithm>
 #include "Scene.h"
 
-using namespace dae;
+using namespace portfolio;
 
 void Scene::Add(std::unique_ptr<GameObject> object)
 {

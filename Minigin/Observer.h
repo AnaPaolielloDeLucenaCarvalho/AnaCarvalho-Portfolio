@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cstddef>
 
-namespace dae
+namespace portfolio
 {
 	// feedback - hashing instead of enum
     template <int length> struct sdbm_hash

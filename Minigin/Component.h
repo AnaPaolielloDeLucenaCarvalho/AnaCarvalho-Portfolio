@@ -1,7 +1,7 @@
 #ifndef COMPONENT_H // No #pragma once, use include guards (for tom's sake)
 #define COMPONENT_H
 
-namespace dae
+namespace portfolio
 {
     class GameObject;
 

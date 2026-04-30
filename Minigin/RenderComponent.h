@@ -5,7 +5,7 @@
 #include <memory>
 #include "Component.h"
 
-namespace dae
+namespace portfolio
 {
     class Texture2D;
 

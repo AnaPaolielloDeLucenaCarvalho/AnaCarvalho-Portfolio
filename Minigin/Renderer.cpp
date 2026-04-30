@@ -10,7 +10,7 @@
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_sdlrenderer3.h>
 
-void dae::Renderer::Init(SDL_Window* window)
+void portfolio::Renderer::Init(SDL_Window* window)
 {
 	m_window = window;
 	SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
@@ -38,7 +38,7 @@ void dae::Renderer::Init(SDL_Window* window)
 	ImGui_ImplSDLRenderer3_Init(m_renderer);
 }
 
-void dae::Renderer::Render() const
+void portfolio::Renderer::Render() const
 {
 	const auto& color = GetBackgroundColor();
 	SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
@@ -56,7 +56,7 @@ void dae::Renderer::Render() const
 	SDL_RenderPresent(m_renderer);
 }
 
-void dae::Renderer::Destroy()
+void portfolio::Renderer::Destroy()
 {
 	ImGui_ImplSDLRenderer3_Shutdown();
 	ImGui_ImplSDL3_Shutdown();
@@ -69,7 +69,7 @@ void dae::Renderer::Destroy()
 	}
 }
 
-void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y) const
+void portfolio::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y) const
 {
 	SDL_FRect dst{};
 	dst.x = x;
@@ -78,7 +78,7 @@ void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const
 	SDL_RenderTexture(GetSDLRenderer(), texture.GetSDLTexture(), nullptr, &dst);
 }
 
-void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y, const float width, const float height) const
+void portfolio::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y, const float width, const float height) const
 {
 	SDL_FRect dst{};
 	dst.x = x;
@@ -89,7 +89,7 @@ void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const
 }
 
 // Fliping
-void dae::Renderer::RenderTexture(const Texture2D& texture, float x, float y, SDL_FlipMode flip) const
+void portfolio::Renderer::RenderTexture(const Texture2D& texture, float x, float y, SDL_FlipMode flip) const
 {
 	SDL_FRect dst{};
 	dst.x = x;
@@ -102,7 +102,7 @@ void dae::Renderer::RenderTexture(const Texture2D& texture, float x, float y, SD
 }
 
 // Fliping + Scaling
-void dae::Renderer::RenderTexture(const Texture2D & texture, float x, float y, float width, float height, SDL_FlipMode flip) const
+void portfolio::Renderer::RenderTexture(const Texture2D & texture, float x, float y, float width, float height, SDL_FlipMode flip) const
 {
 	SDL_FRect dst{};
 	dst.x = x;
@@ -113,4 +113,4 @@ void dae::Renderer::RenderTexture(const Texture2D & texture, float x, float y, f
 	SDL_RenderTextureRotated(m_renderer, texture.GetSDLTexture(), nullptr, &dst, 0.0, nullptr, flip);
 }
 
-SDL_Renderer* dae::Renderer::GetSDLRenderer() const { return m_renderer; }
+SDL_Renderer* portfolio::Renderer::GetSDLRenderer() const { return m_renderer; }

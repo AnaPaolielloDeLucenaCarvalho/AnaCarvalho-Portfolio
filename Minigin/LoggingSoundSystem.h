@@ -5,7 +5,7 @@
 #include <memory>
 #include <iostream>
 
-namespace dae
+namespace portfolio
 {
     class LoggingSoundSystem final : public SoundSystem
     {

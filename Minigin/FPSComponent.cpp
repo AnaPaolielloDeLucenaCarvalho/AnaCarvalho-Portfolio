@@ -3,7 +3,7 @@
 #include "TextComponent.h"
 #include <string>
 
-namespace dae
+namespace portfolio
 {
     FPSComponent::FPSComponent(GameObject* pOwner)
         : Component(pOwner)

@@ -1,7 +1,7 @@
 #include <string>
 #include "GameObject.h"
 
-void dae::GameObject::Update(float deltaTime)
+void portfolio::GameObject::Update(float deltaTime)
 {
 	for (auto& component : m_Components)
 	{
@@ -11,7 +11,7 @@ void dae::GameObject::Update(float deltaTime)
 	std::erase_if(m_Components, [](const std::unique_ptr<Component>& component){ return component->IsMarkedForDestroy(); });
 }
 
-void dae::GameObject::Render() const
+void portfolio::GameObject::Render() const
 {
 	for (const auto& component : m_Components)
 	{
@@ -20,13 +20,13 @@ void dae::GameObject::Render() const
 }
 
 // W02
-void dae::GameObject::SetLocalPosition(float x, float y)
+void portfolio::GameObject::SetLocalPosition(float x, float y)
 {
 	m_localTransform.SetPosition(x, y, 0.0f);
 	SetPositionDirty();
 }
 
-const dae::Transform& dae::GameObject::GetTransform()
+const portfolio::Transform& portfolio::GameObject::GetTransform()
 {
 	if (m_positionIsDirty)
 	{
@@ -35,7 +35,7 @@ const dae::Transform& dae::GameObject::GetTransform()
 	return m_worldTransform;
 }
 
-void dae::GameObject::SetPositionDirty()
+void portfolio::GameObject::SetPositionDirty()
 {
 	m_positionIsDirty = true;
 
@@ -46,7 +46,7 @@ void dae::GameObject::SetPositionDirty()
 	}
 }
 
-void dae::GameObject::UpdateWorldTransform()
+void portfolio::GameObject::UpdateWorldTransform()
 {
 	if (m_positionIsDirty)
 	{
@@ -65,7 +65,7 @@ void dae::GameObject::UpdateWorldTransform()
 	m_positionIsDirty = false;
 }
 
-void dae::GameObject::SetParent(GameObject* parent, bool keepWorldPosition)
+void portfolio::GameObject::SetParent(GameObject* parent, bool keepWorldPosition)
 {
 	// Validate
 	if (IsChild(parent) || parent == this || m_pParent == parent)
@@ -103,7 +103,7 @@ void dae::GameObject::SetParent(GameObject* parent, bool keepWorldPosition)
 	}
 }
 
-void dae::GameObject::AddChild(GameObject* child)
+void portfolio::GameObject::AddChild(GameObject* child)
 {
 	if (child == nullptr || child == this)
 	{
@@ -116,7 +116,7 @@ void dae::GameObject::AddChild(GameObject* child)
 	child->SetPositionDirty();
 }
 
-void dae::GameObject::RemoveChild(GameObject* child)
+void portfolio::GameObject::RemoveChild(GameObject* child)
 {
 	if (child == nullptr || child->m_pParent != this)
 	{
@@ -131,7 +131,7 @@ void dae::GameObject::RemoveChild(GameObject* child)
 	child->m_pParent = nullptr;
 }
 
-bool dae::GameObject::IsChild(GameObject* child) const
+bool portfolio::GameObject::IsChild(GameObject* child) const
 {
 	for (const auto& c : m_pChildren)
 	{
