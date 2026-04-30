@@ -30,9 +30,9 @@ portfolio::Texture2D::Texture2D(const std::string &fullPath)
         );
     }
 
-    // Red (R:255, G:0, B:0) should be transparent!
+    // Magenta (R:255, G:0, B:255) should be transparent!
     const SDL_PixelFormatDetails* format = SDL_GetPixelFormatDetails(surface->format);
-    Uint32 transparentColor = SDL_MapRGB(format, nullptr, 255, 0, 0);
+    Uint32 transparentColor = SDL_MapRGB(format, nullptr, 255, 0, 255);
     SDL_SetSurfaceColorKey(surface, true, transparentColor);
 
     m_texture = SDL_CreateTextureFromSurface(

@@ -70,7 +70,7 @@ namespace portfolio
 
     void portfolio::TriggerComponent::Render() const
     {
-        /*auto renderer = dae::Renderer::GetInstance().GetSDLRenderer();
+        /*auto renderer = portfolio::Renderer::GetInstance().GetSDLRenderer();
         const auto& pos = GetOwner()->GetTransform().GetPosition();
 
         Uint8 r, g, b, a;
