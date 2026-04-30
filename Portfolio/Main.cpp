@@ -332,7 +332,8 @@ void CreateSingleProjectScene(portfolio::TriggerComponent* flowerTrigger, const 
     for (int i = 1; i <= numberOfImages; ++i)
     {
         std::string numberPrefix = (i < 10) ? "0" + std::to_string(i) : std::to_string(i);
-        std::string relativePath = "Proj" + std::to_string(projectNumber) + "/" + numberPrefix + "Img.png";
+        std::string relativePath = "Proj" + std::to_string(projectNumber) + "/P" + std::to_string(projectNumber) + "_" + numberPrefix + ".png";
+
         imageFiles.push_back(relativePath);
     }
 
