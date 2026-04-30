@@ -23,6 +23,7 @@
 #include "LoggingSoundSystem.h"
 #include "ServiceLocator.h"
 #include <chrono>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
@@ -313,9 +314,52 @@ void LoadContactScene(portfolio::GameObject*& outPlayer, portfolio::TriggerCompo
     AddMuteIconsToScene(scene);
 }
 
-void CreateSingleProjectScene(portfolio::TriggerComponent* flowerTrigger, const std::string& bgName, portfolio::GameObject* projectsPlayerPtr, int targetSceneIndex)
+// PROJECT SCENE GENERATOR
+void CreateSingleProjectScene(portfolio::TriggerComponent* flowerTrigger, const std::string& bgName, portfolio::GameObject* projectsPlayerPtr, int targetSceneIndex, int projectNumber)
 {
     auto& scene = portfolio::SceneManager::GetInstance().CreateScene();
+
+    std::string folderPath = "";
+#ifdef __EMSCRIPTEN__
+    folderPath = "Data/Proj" + std::to_string(projectNumber) + "/";
+#else
+    if (fs::exists("./Data/")) folderPath = "./Data/Proj" + std::to_string(projectNumber) + "/";
+    else folderPath = "../Data/Proj" + std::to_string(projectNumber) + "/";
+#endif
+
+    std::vector<std::string> imageFiles;
+
+    if (fs::exists(folderPath) && fs::is_directory(folderPath))
+    {
+        for (const auto& entry : fs::directory_iterator(folderPath))
+        {
+            if (entry.path().extension() == ".png" || entry.path().extension() == ".jpg")
+            {
+                std::string relativePath = "Proj" + std::to_string(projectNumber) + "/" + entry.path().filename().string();
+                imageFiles.push_back(relativePath);
+            }
+        }
+    }
+
+    std::sort(imageFiles.begin(), imageFiles.end());
+
+    auto slides = std::make_shared<std::vector<portfolio::GameObject*>>();
+    auto currentIndex = std::make_shared<int>(0);
+    auto lastSwitchTime = std::make_shared<std::chrono::steady_clock::time_point>(std::chrono::steady_clock::now());
+
+    glm::vec2 carouselPos = { 72.0f, 72.0f };
+
+    for (size_t i = 0; i < imageFiles.size(); ++i)
+    {
+        auto slideObj = std::make_unique<portfolio::GameObject>();
+        slideObj->AddComponent<portfolio::RenderComponent>(imageFiles[i]);
+
+        if (i == 0) slideObj->SetLocalPosition(carouselPos.x, carouselPos.y);
+        else slideObj->SetLocalPosition(-2000.0f, -2000.0f);
+
+        slides->push_back(slideObj.get());
+        scene.Add(std::move(slideObj));
+    }
 
     auto bg = std::make_unique<portfolio::GameObject>();
     bg->AddComponent<portfolio::RenderComponent>(bgName);
@@ -324,7 +368,6 @@ void CreateSingleProjectScene(portfolio::TriggerComponent* flowerTrigger, const 
     auto onEsc = [projectsPlayerPtr]()
         {
             std::cout << "Returning to Projects...\n";
-
             portfolio::SceneManager::GetInstance().TransitionToScene(3, [projectsPlayerPtr]()
                 {
                     std::vector<SDL_FRect> projectsWoodZones = { SDL_FRect{ 636.0f, 0.0f, 100.0f, 272.0f } };
@@ -332,8 +375,33 @@ void CreateSingleProjectScene(portfolio::TriggerComponent* flowerTrigger, const 
                 });
         };
 
-    auto onQ = []() { std::cout << "Future Carousel Left!\n"; };
-    auto onE = []() { std::cout << "Future Carousel Right!\n"; };
+    auto onQ = [slides, currentIndex, carouselPos, lastSwitchTime]()
+        {
+            if (slides->empty()) return;
+
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - *lastSwitchTime).count() < 250) return;
+            *lastSwitchTime = now;
+
+            (*slides)[*currentIndex]->SetLocalPosition(-2000.0f, -2000.0f);
+            int totalSlides = static_cast<int>(slides->size());
+            *currentIndex = (*currentIndex - 1 + totalSlides) % totalSlides;
+            (*slides)[*currentIndex]->SetLocalPosition(carouselPos.x, carouselPos.y);
+        };
+
+    auto onE = [slides, currentIndex, carouselPos, lastSwitchTime]()
+        {
+            if (slides->empty()) return;
+
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - *lastSwitchTime).count() < 250) return;
+            *lastSwitchTime = now;
+
+            (*slides)[*currentIndex]->SetLocalPosition(-2000.0f, -2000.0f);
+            int totalSlides = static_cast<int>(slides->size());
+            *currentIndex = (*currentIndex + 1) % totalSlides;
+            (*slides)[*currentIndex]->SetLocalPosition(carouselPos.x, carouselPos.y);
+        };
 
     g_ProjectInteractions.push_back({ flowerTrigger, [targetSceneIndex, onEsc, onQ, onE]()
     {
@@ -407,7 +475,8 @@ void LoadProjectsScene(portfolio::GameObject*& outPlayer, portfolio::TriggerComp
                 popupPtr->SetLocalPosition(-2000.0f, -2000.0f);
             });
 
-        CreateSingleProjectScene(tComp, projects[i].bgImageName, outPlayer, static_cast<int>(4 + i));
+        // NEW: Passed (i + 1) so it knows to open Folder "Proj1", "Proj2", etc.
+        CreateSingleProjectScene(tComp, projects[i].bgImageName, outPlayer, static_cast<int>(4 + i), static_cast<int>(i + 1));
         scene.Add(std::move(flowerObj));
     }
 
