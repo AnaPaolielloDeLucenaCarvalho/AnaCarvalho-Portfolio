@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 #include <functional>
+#include <cmath>
+#include <cstdlib>
 
 #include "Scene.h"
 #include "SceneManager.h"
@@ -24,7 +26,7 @@
 
 namespace fs = std::filesystem;
 
-// INTERACTION SYSTEM
+// GLOBAL STATE & INTERACTION SYSTEM
 std::vector<std::pair<dae::TriggerComponent*, std::function<void()>>> g_ProjectInteractions;
 
 bool g_IsMuted = false;
@@ -98,31 +100,106 @@ void AddMuteIconsToScene(dae::Scene& scene)
     scene.Add(std::move(f2));
 }
 
+// SOUND EFFECTS MOVEMENT
+enum class Surface { None, Wood, Grass };
+Surface g_CurrentSurface = Surface::Wood;
+std::chrono::steady_clock::time_point g_LastFootstepTime = std::chrono::steady_clock::now();
+
+class PlayerMoveCommand : public dae::Command 
+{
+    std::unique_ptr<dae::MoveCommand> m_MoveCmd;
+    dae::GameObject* m_Player;
+    std::vector<SDL_FRect> m_WoodZones;
+    bool m_AlwaysWood;
+
+public:
+    PlayerMoveCommand(dae::GameObject* player, glm::vec2 dir, float speed, const std::vector<SDL_FRect>& walkableZones, bool alwaysWood, const std::vector<SDL_FRect>& woodZones)
+        : m_MoveCmd(std::make_unique<dae::MoveCommand>(player, dir, speed, walkableZones))
+        , m_Player(player)
+        , m_WoodZones(woodZones)
+        , m_AlwaysWood(alwaysWood) 
+    {
+    }
+
+    void Execute(float deltaTime) override
+    {
+        auto posBefore = m_Player->GetTransform().GetPosition();
+        m_MoveCmd->Execute(deltaTime);
+        auto posAfter = m_Player->GetTransform().GetPosition();
+
+        if (std::abs(posBefore.x - posAfter.x) > 0.01f || std::abs(posBefore.y - posAfter.y) > 0.01f)
+        {
+            Surface newSurface = Surface::Grass;
+            if (m_AlwaysWood)
+            {
+                newSurface = Surface::Wood;
+            }
+            else
+            {
+                float feetX = posAfter.x + 44.0f;
+                float feetY = posAfter.y + 115.0f;
+
+                for (const auto& rect : m_WoodZones)
+                {
+                    if (feetX >= rect.x && feetX <= rect.x + rect.w &&
+                        feetY >= rect.y && feetY <= rect.y + rect.h)
+                    {
+                        newSurface = Surface::Wood;
+                        break;
+                    }
+                }
+            }
+
+            auto& ss = dae::ServiceLocator::get_sound_system();
+
+            if (g_CurrentSurface != newSurface)
+            {
+                if (newSurface == Surface::Wood)
+                {
+                    ss.play(11, 0.4f); // Jump Wood
+                }
+                else
+                {
+                    ss.play(12, 0.4f); // Jump Grass
+                }
+
+                g_CurrentSurface = newSurface;
+                g_LastFootstepTime = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+            }
+
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - g_LastFootstepTime).count() > 350)
+            {
+                g_LastFootstepTime = now;
+
+                int soundId = (newSurface == Surface::Wood) ? (1 + (std::rand() % 5)) : (6 + (std::rand() % 5));
+                ss.play(static_cast<dae::sound_id>(soundId), 0.15f);
+            }
+        }
+    }
+};
+
 // INPUT BINDINGS
-void BindPlayerInputs(dae::GameObject* playerPtr, const std::vector<SDL_FRect>& walkableZones = {}, bool canInteract = false)
+void BindPlayerInputs(dae::GameObject* playerPtr, const std::vector<SDL_FRect>& walkableZones = {}, bool canInteract = false, bool alwaysWood = true, const std::vector<SDL_FRect>& woodZones = {})
 {
     auto& input = dae::InputManager::GetInstance();
     input.UnbindAll();
 
     float playerSpeed = 150.0f;
 
-    // WASD 
-    input.BindCommand(SDL_SCANCODE_W, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ 0, -1 }, playerSpeed, walkableZones));
-    input.BindCommand(SDL_SCANCODE_S, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ 0, 1 }, playerSpeed, walkableZones));
-    input.BindCommand(SDL_SCANCODE_A, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ -1, 0 }, playerSpeed, walkableZones));
-    input.BindCommand(SDL_SCANCODE_D, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ 1, 0 }, playerSpeed, walkableZones));
+    input.BindCommand(SDL_SCANCODE_W, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, -1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_S, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, 1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_A, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ -1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_D, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
 
-    // Arrows
-    input.BindCommand(SDL_SCANCODE_UP, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ 0, -1 }, playerSpeed, walkableZones));
-    input.BindCommand(SDL_SCANCODE_DOWN, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ 0, 1 }, playerSpeed, walkableZones));
-    input.BindCommand(SDL_SCANCODE_LEFT, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ -1, 0 }, playerSpeed, walkableZones));
-    input.BindCommand(SDL_SCANCODE_RIGHT, dae::KeyState::Pressed, std::make_unique<dae::MoveCommand>(playerPtr, glm::vec2{ 1, 0 }, playerSpeed, walkableZones));
+    input.BindCommand(SDL_SCANCODE_UP, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, -1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_DOWN, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 0, 1 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_LEFT, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ -1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
+    input.BindCommand(SDL_SCANCODE_RIGHT, dae::KeyState::Pressed, std::make_unique<PlayerMoveCommand>(playerPtr, glm::vec2{ 1, 0 }, playerSpeed, walkableZones, alwaysWood, woodZones));
 
-    // F2 to Mute
     input.BindCommand(SDL_SCANCODE_F2, dae::KeyState::Pressed, std::make_unique<ActionCommand>(ToggleMuteGlobal));
 
-    // "E" to interact
-    if (canInteract) 
+    if (canInteract)
     {
         input.BindCommand(SDL_SCANCODE_E, dae::KeyState::Pressed, std::make_unique<ActionCommand>([]()
             {
@@ -138,21 +215,20 @@ void BindPlayerInputs(dae::GameObject* playerPtr, const std::vector<SDL_FRect>& 
     }
 }
 
-// Inside Project (ESC to leave, Q/E carousels)
+// BIND PROJECTS (ESC to leave, Q/E carousels)
 void BindProjectViewInputs(std::function<void()> onEsc, std::function<void()> onQ, std::function<void()> onE)
 {
     auto& input = dae::InputManager::GetInstance();
-	input.UnbindAll(); // No WASD/Arrows
+    input.UnbindAll();
 
     input.BindCommand(SDL_SCANCODE_ESCAPE, dae::KeyState::Pressed, std::make_unique<ActionCommand>(onEsc));
     input.BindCommand(SDL_SCANCODE_Q, dae::KeyState::Pressed, std::make_unique<ActionCommand>(onQ));
     input.BindCommand(SDL_SCANCODE_E, dae::KeyState::Pressed, std::make_unique<ActionCommand>(onE));
 
-    // F2 to Mute
     input.BindCommand(SDL_SCANCODE_F2, dae::KeyState::Pressed, std::make_unique<ActionCommand>(ToggleMuteGlobal));
 }
 
-// MAIN SCENE
+// SCENE BUILDERS
 void LoadMainMenu(dae::GameObject*& outPlayer, dae::TriggerComponent*& tAbout, dae::TriggerComponent*& tContact, dae::TriggerComponent*& tProj)
 {
     auto& scene = dae::SceneManager::GetInstance().CreateScene();
@@ -172,7 +248,6 @@ void LoadMainMenu(dae::GameObject*& outPlayer, dae::TriggerComponent*& tAbout, d
     treeTop->SetLocalPosition(159.0f, 442.0f);
     scene.Add(std::move(treeTop));
 
-    // Triggers
     auto tr1 = std::make_unique<dae::GameObject>();
     tr1->SetLocalPosition(624.0f, 0);
     tAbout = tr1->AddComponent<dae::TriggerComponent>(124.0f, 48.0f);
@@ -194,7 +269,6 @@ void LoadMainMenu(dae::GameObject*& outPlayer, dae::TriggerComponent*& tAbout, d
     AddMuteIconsToScene(scene);
 }
 
-// ABOUT
 void LoadAboutScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain)
 {
     auto& scene = dae::SceneManager::GetInstance().CreateScene();
@@ -217,7 +291,6 @@ void LoadAboutScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain)
     AddMuteIconsToScene(scene);
 }
 
-// CONTACT
 void LoadContactScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain)
 {
     auto& scene = dae::SceneManager::GetInstance().CreateScene();
@@ -240,7 +313,6 @@ void LoadContactScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain
     AddMuteIconsToScene(scene);
 }
 
-// PROJECT SCENE GENERATOR
 void CreateSingleProjectScene(dae::TriggerComponent* flowerTrigger, const std::string& bgName, dae::GameObject* projectsPlayerPtr, int targetSceneIndex)
 {
     auto& scene = dae::SceneManager::GetInstance().CreateScene();
@@ -249,14 +321,15 @@ void CreateSingleProjectScene(dae::TriggerComponent* flowerTrigger, const std::s
     bg->AddComponent<dae::RenderComponent>(bgName);
     scene.Add(std::move(bg));
 
-    auto onEsc = [projectsPlayerPtr]() 
+    auto onEsc = [projectsPlayerPtr]()
         {
-        std::cout << "Returning to Projects...\n";
+            std::cout << "Returning to Projects...\n";
 
-        dae::SceneManager::GetInstance().TransitionToScene(3, [projectsPlayerPtr]()
-            {
-                BindPlayerInputs(projectsPlayerPtr, {}, true);
-            });
+            dae::SceneManager::GetInstance().TransitionToScene(3, [projectsPlayerPtr]()
+                {
+                    std::vector<SDL_FRect> projectsWoodZones = { SDL_FRect{ 636.0f, 0.0f, 100.0f, 272.0f } };
+                    BindPlayerInputs(projectsPlayerPtr, {}, true, false, projectsWoodZones);
+                });
         };
 
     auto onQ = []() { std::cout << "Future Carousel Left!\n"; };
@@ -275,7 +348,6 @@ void CreateSingleProjectScene(dae::TriggerComponent* flowerTrigger, const std::s
     AddMuteIconsToScene(scene);
 }
 
-// PROJECTS
 void LoadProjectsScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMain)
 {
     auto& scene = dae::SceneManager::GetInstance().CreateScene();
@@ -283,6 +355,12 @@ void LoadProjectsScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMai
     auto bg = std::make_unique<dae::GameObject>();
     bg->AddComponent<dae::RenderComponent>("ProjectsBackground.png");
     scene.Add(std::move(bg));
+
+    auto popupObj = std::make_unique<dae::GameObject>();
+    popupObj->AddComponent<dae::RenderComponent>("PressE.png");
+    popupObj->SetLocalPosition(-2000.0f, -2000.0f);
+    auto popupPtr = popupObj.get();
+    scene.Add(std::move(popupObj));
 
     auto player = std::make_unique<dae::GameObject>();
     player->AddComponent<dae::SpriteComponent>("PlayerSprite.png", 3, 3, 0.1f);
@@ -295,19 +373,12 @@ void LoadProjectsScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMai
     tMain->SetTarget(outPlayer, 88.0f, 120.0f);
     scene.Add(std::move(trMain));
 
-    auto popupObj = std::make_unique<dae::GameObject>();
-    popupObj->AddComponent<dae::RenderComponent>("PressE.png");
-    popupObj->SetLocalPosition(-2000.0f, -2000.0f);
-    auto popupPtr = popupObj.get();
-
-    // 6 PROJECTS
     struct ProjectInfo {
         glm::vec2 triggerPos;
         glm::vec2 popupPos;
         std::string bgImageName;
     };
 
-    // { Trigger X/Y , Popup X/Y , Background Image }
     std::vector<ProjectInfo> projects = {
         { {692.0f, 484.0f}, {884.0f, 620.0f}, "Proj1_Bg.png" },
         { {301.0f, 309.0f}, {488.0f, 445.0f}, "Proj2_Bg.png" },
@@ -326,21 +397,20 @@ void LoadProjectsScene(dae::GameObject*& outPlayer, dae::TriggerComponent*& tMai
 
         glm::vec2 customPopupPos = projects[i].popupPos;
 
-        tComp->SetOnTriggerEnter([popupPtr, customPopupPos]() 
+        tComp->SetOnTriggerEnter([popupPtr, customPopupPos]()
             {
-            popupPtr->SetLocalPosition(customPopupPos.x, customPopupPos.y);
+                popupPtr->SetLocalPosition(customPopupPos.x, customPopupPos.y);
             });
 
-        tComp->SetOnTriggerExit([popupPtr]() 
+        tComp->SetOnTriggerExit([popupPtr]()
             {
-            popupPtr->SetLocalPosition(-2000.0f, -2000.0f);
+                popupPtr->SetLocalPosition(-2000.0f, -2000.0f);
             });
 
         CreateSingleProjectScene(tComp, projects[i].bgImageName, outPlayer, static_cast<int>(4 + i));
         scene.Add(std::move(flowerObj));
     }
 
-    scene.Add(std::move(popupObj));
     AddMuteIconsToScene(scene);
 }
 
@@ -357,23 +427,40 @@ void load()
     else dataPath = "../Data/";
 #endif
 
-    // Audio
+    // LOAD AUDIO SYSTEM
     auto audioSystem = std::make_unique<dae::MiniaudioSoundSystem>();
     dae::ServiceLocator::register_sound_system(std::make_unique<dae::LoggingSoundSystem>(std::move(audioSystem)));
-    dae::ServiceLocator::get_sound_system().loadSound(0, dataPath + "AnimalCrossingNewHorizonsMainTheme.mp3");
-    dae::ServiceLocator::get_sound_system().play(0, 0.25);
+    auto& ss = dae::ServiceLocator::get_sound_system();
+
+    ss.loadSound(0, dataPath + "AnimalCrossingNewHorizonsMainTheme.mp3");
+    ss.play(0, 0.25f);
+
+    // Wood Footsteps (1-5)
+    ss.loadSound(1, dataPath + "SoundEffects/Footstep_Wood_00_Ac.wav");
+    ss.loadSound(2, dataPath + "SoundEffects/Footstep_Wood_01_Ac.wav");
+    ss.loadSound(3, dataPath + "SoundEffects/Footstep_Wood_02_Ac.wav");
+    ss.loadSound(4, dataPath + "SoundEffects/Footstep_Wood_03_Ac.wav");
+    ss.loadSound(5, dataPath + "SoundEffects/Footstep_Wood_04_Ac.wav");
+    // Grass Footsteps (6-10)
+    ss.loadSound(6, dataPath + "SoundEffects/Footstep_Grass_00_Ac.wav");
+    ss.loadSound(7, dataPath + "SoundEffects/Footstep_Grass_01_Ac.wav");
+    ss.loadSound(8, dataPath + "SoundEffects/Footstep_Grass_02_Ac.wav");
+    ss.loadSound(9, dataPath + "SoundEffects/Footstep_Grass_03_Ac.wav");
+    ss.loadSound(10, dataPath + "SoundEffects/Footstep_Grass_04_Ac.wav");
+
+    // Jump Transitions (I11-12)
+    ss.loadSound(11, dataPath + "SoundEffects/Jump_Wood_00.wav");
+    ss.loadSound(12, dataPath + "SoundEffects/Jump_Grass_00.wav");
 
     dae::GameObject* p1, * p2, * p3, * p4;
     dae::TriggerComponent* tMainToAbout, * tMainToContact, * tMainToProj;
     dae::TriggerComponent* tAboutToMain, * tContactToMain, * tProjToMain;
 
-    // Build the Main 4 Scenes
     LoadMainMenu(p1, tMainToAbout, tMainToContact, tMainToProj);
     LoadAboutScene(p2, tAboutToMain);
     LoadContactScene(p3, tContactToMain);
     LoadProjectsScene(p4, tProjToMain);
 
-    // TRIGGERS & PLANKS
     std::vector<SDL_FRect> mainScenePlanks =
     {
         SDL_FRect{ 632.0f, 0.0f, 108.0f, 768.0f },
@@ -382,74 +469,70 @@ void load()
     std::vector<SDL_FRect> aboutScenePlanks = { SDL_FRect{ 632.0f, 484.0f, 108.0f, 284.0f } };
     std::vector<SDL_FRect> contactScenePlanks = { SDL_FRect{ 0.0f, 460.0f, 612.0f, 92.0f } };
 
-    // Main -> About
-    tMainToAbout->SetOnTriggerEnter([p2, aboutScenePlanks]() 
+    std::vector<SDL_FRect> projectsWoodZones = { SDL_FRect{ 636.0f, 0.0f, 100.0f, 272.0f } };
+
+    tMainToAbout->SetOnTriggerEnter([p2, aboutScenePlanks]()
         {
-        dae::InputManager::GetInstance().UnbindAll();
-        dae::SceneManager::GetInstance().TransitionToScene(1, [p2, aboutScenePlanks]() 
-            {
-            p2->SetLocalPosition(642.5f, 768.0f - 160.0f);
-            BindPlayerInputs(p2, aboutScenePlanks);
-            });
+            dae::InputManager::GetInstance().UnbindAll();
+            dae::SceneManager::GetInstance().TransitionToScene(1, [p2, aboutScenePlanks]()
+                {
+                    p2->SetLocalPosition(642.5f, 768.0f - 160.0f);
+                    BindPlayerInputs(p2, aboutScenePlanks, false, true); // true = always Wood
+                });
         });
 
-    // Main -> Contact
-    tMainToContact->SetOnTriggerEnter([p3, contactScenePlanks]() 
+    tMainToContact->SetOnTriggerEnter([p3, contactScenePlanks]()
         {
-        dae::InputManager::GetInstance().UnbindAll();
-        dae::SceneManager::GetInstance().TransitionToScene(2, [p3, contactScenePlanks]() 
-            {
-            p3->SetLocalPosition(150.0f, 400.0f);
-            BindPlayerInputs(p3, contactScenePlanks);
-            });
+            dae::InputManager::GetInstance().UnbindAll();
+            dae::SceneManager::GetInstance().TransitionToScene(2, [p3, contactScenePlanks]()
+                {
+                    p3->SetLocalPosition(150.0f, 400.0f);
+                    BindPlayerInputs(p3, contactScenePlanks, false, true); // true = always Wood
+                });
         });
 
-    // Main -> Projects
-    tMainToProj->SetOnTriggerEnter([p4]() 
+    tMainToProj->SetOnTriggerEnter([p4, projectsWoodZones]()
         {
-        dae::InputManager::GetInstance().UnbindAll();
-        dae::SceneManager::GetInstance().TransitionToScene(3, [p4]() 
-            {
-            p4->SetLocalPosition(642.5f, 95.0f);
-            BindPlayerInputs(p4, {}, true);
-            });
+            dae::InputManager::GetInstance().UnbindAll();
+            dae::SceneManager::GetInstance().TransitionToScene(3, [p4, projectsWoodZones]()
+                {
+                    p4->SetLocalPosition(642.5f, 95.0f);
+					BindPlayerInputs(p4, {}, true, false, projectsWoodZones); // false = not always wood
+                });
         });
 
-    // About -> Main
-    tAboutToMain->SetOnTriggerEnter([p1, mainScenePlanks]() 
+    tAboutToMain->SetOnTriggerEnter([p1, mainScenePlanks]()
         {
-        dae::InputManager::GetInstance().UnbindAll();
-        dae::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]() 
-            {
-            p1->SetLocalPosition(642.5f, 95.0f);
-            BindPlayerInputs(p1, mainScenePlanks);
-            });
+            dae::InputManager::GetInstance().UnbindAll();
+            dae::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]()
+                {
+                    p1->SetLocalPosition(642.5f, 95.0f);
+                    BindPlayerInputs(p1, mainScenePlanks, false, true);
+                });
         });
 
-    // Contact -> Main
-    tContactToMain->SetOnTriggerEnter([p1, mainScenePlanks]() 
+    tContactToMain->SetOnTriggerEnter([p1, mainScenePlanks]()
         {
-        dae::InputManager::GetInstance().UnbindAll();
-        dae::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]() 
-            {
-            p1->SetLocalPosition(1366.0f - 250.0f, 400.0f);
-            BindPlayerInputs(p1, mainScenePlanks);
-            });
+            dae::InputManager::GetInstance().UnbindAll();
+            dae::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]()
+                {
+                    p1->SetLocalPosition(1366.0f - 250.0f, 400.0f);
+                    BindPlayerInputs(p1, mainScenePlanks, false, true);
+                });
         });
 
-    // Projects -> Main
-    tProjToMain->SetOnTriggerEnter([p1, mainScenePlanks]() 
+    tProjToMain->SetOnTriggerEnter([p1, mainScenePlanks]()
         {
-        dae::InputManager::GetInstance().UnbindAll();
-        dae::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]() 
-            {
-            p1->SetLocalPosition(642.5f, 768.0f - 250.0f);
-            BindPlayerInputs(p1, mainScenePlanks);
-            });
+            dae::InputManager::GetInstance().UnbindAll();
+            dae::SceneManager::GetInstance().TransitionToScene(0, [p1, mainScenePlanks]()
+                {
+                    p1->SetLocalPosition(642.5f, 768.0f - 250.0f);
+                    BindPlayerInputs(p1, mainScenePlanks, false, true);
+                });
         });
 
     // START GAME
-    BindPlayerInputs(p1, mainScenePlanks);
+    BindPlayerInputs(p1, mainScenePlanks, false, true); // true = Always Wood
     dae::SceneManager::GetInstance().SetActiveScene(0);
 }
 
