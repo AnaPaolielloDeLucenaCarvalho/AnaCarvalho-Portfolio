@@ -319,29 +319,22 @@ void CreateSingleProjectScene(portfolio::TriggerComponent* flowerTrigger, const 
 {
     auto& scene = portfolio::SceneManager::GetInstance().CreateScene();
 
-    std::string folderPath = "";
-#ifdef __EMSCRIPTEN__
-    folderPath = "Data/Proj" + std::to_string(projectNumber) + "/";
-#else
-    if (fs::exists("./Data/")) folderPath = "./Data/Proj" + std::to_string(projectNumber) + "/";
-    else folderPath = "../Data/Proj" + std::to_string(projectNumber) + "/";
-#endif
-
     std::vector<std::string> imageFiles;
 
-    if (fs::exists(folderPath) && fs::is_directory(folderPath))
-    {
-        for (const auto& entry : fs::directory_iterator(folderPath))
-        {
-            if (entry.path().extension() == ".png" || entry.path().extension() == ".jpg")
-            {
-                std::string relativePath = "Proj" + std::to_string(projectNumber) + "/" + entry.path().filename().string();
-                imageFiles.push_back(relativePath);
-            }
-        }
-    }
+    int numberOfImages = 0;
+    if (projectNumber == 1) numberOfImages = 3;
+    else if (projectNumber == 2) numberOfImages = 5;
+    else if (projectNumber == 3) numberOfImages = 1;
+    else if (projectNumber == 4) numberOfImages = 5;
+    else if (projectNumber == 5) numberOfImages = 8;
+    else if (projectNumber == 6) numberOfImages = 3;
 
-    std::sort(imageFiles.begin(), imageFiles.end());
+    for (int i = 1; i <= numberOfImages; ++i)
+    {
+        std::string numberPrefix = (i < 10) ? "0" + std::to_string(i) : std::to_string(i);
+        std::string relativePath = "Proj" + std::to_string(projectNumber) + "/" + numberPrefix + "Img.png";
+        imageFiles.push_back(relativePath);
+    }
 
     auto slides = std::make_shared<std::vector<portfolio::GameObject*>>();
     auto currentIndex = std::make_shared<int>(0);
@@ -475,7 +468,6 @@ void LoadProjectsScene(portfolio::GameObject*& outPlayer, portfolio::TriggerComp
                 popupPtr->SetLocalPosition(-2000.0f, -2000.0f);
             });
 
-        // NEW: Passed (i + 1) so it knows to open Folder "Proj1", "Proj2", etc.
         CreateSingleProjectScene(tComp, projects[i].bgImageName, outPlayer, static_cast<int>(4 + i), static_cast<int>(i + 1));
         scene.Add(std::move(flowerObj));
     }
